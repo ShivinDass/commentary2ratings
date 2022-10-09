@@ -1,0 +1,6 @@
+numpy
+matplotlib
+pillow
+torch==1.10.0
+pandas
+scikit-learn
