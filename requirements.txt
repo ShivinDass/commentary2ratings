@@ -1,6 +1,6 @@
 numpy
 matplotlib
 pillow
-torch==1.10.0
+torch==1.12.0
 pandas
 scikit-learn
