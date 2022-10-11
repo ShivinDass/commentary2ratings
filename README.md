@@ -24,7 +24,7 @@ export DATA_DIR=./data_files
 
 ## Download Data
 
-Download data from [here](https://drive.google.com/drive/folders/1W76B70aN-adoJcYoX7mwDY1A8YQSNvHL?usp=sharing).
+Download data from [here](https://drive.google.com/drive/folders/1W76B70aN-adoJcYoX7mwDY1A8YQSNvHL?usp=sharing) and add it to the data_files folder created in step 5 above
 
 data description
 - fixtures.csv : contains information about the fixtures. Important fields are date and team ids to uniquely identify a match
