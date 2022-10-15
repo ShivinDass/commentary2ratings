@@ -3,4 +3,8 @@
 __pycache__
 experiments
 data_files
+<<<<<<< HEAD
 venv
+=======
+venv
+>>>>>>> 0946e20 (gitgnore changes)
