@@ -10,17 +10,17 @@ import random
 from spacy.util import minibatch, compounding
 from spacy.training.example import Example
 from pathlib import Path
-nlp = spacy.load("en_core_web_sm")
-output_dir = Path('./content/')
+
+
 
 def train_ner():
+    output_dir = Path('./content/')
+    nlp = spacy.load("en_core_web_sm")
     ner=nlp.get_pipe("ner")
 
-    #"Federico Fernández (Swansea City) wins a free kick in the defensive half."
-    #doc = nlp("Attempt missed. Aaron Ramsey (Arsenal) right footed shot from outside the box is high and wide to the right. Assisted by Granit Xhaka with a headed pass.")
-    doc = nlp("Federico Fernández (Swansea City) wins a free kick in the defensive half.")
-    print(doc.text)
-    print("Entities", [(ent.text, ent.label_) for ent in doc.ents])
+    
+    #print(doc.text)
+    #print("Entities", [(ent.text, ent.label_) for ent in doc.ents])
 
     for _, annotations in TRAIN_DATA:
         for ent in annotations.get("entities"):
@@ -56,16 +56,16 @@ def train_ner():
                         )
                 print("Losses", losses)
 
-    doc = nlp("Federico Fernández (Swansea City) wins a free kick in the defensive half.")
-    print(doc)
-    print("Entities", [(ent.text, ent.label_) for ent in doc.ents])
+    #doc = nlp("Federico Fernández (Swansea City) wins a free kick in the defensive half.")
+    #print(doc)
+    #print("Entities", [(ent.text, ent.label_) for ent in doc.ents])
 
     
     nlp.to_disk(output_dir)
     print("Saved model to", output_dir)
 
-def get_sample(n):
-    df = pd.read_csv('commentary.csv', usecols= ['commentary'])
+def get_sample(path, n):
+    df = pd.read_csv(path, usecols= ['commentary'])
 
     new_df = df.sample(n)
     print(len(new_df))
@@ -90,12 +90,15 @@ def json_to_csv():
     appended_df = pd.concat(dfs)
     appended_df.to_csv("commentary.csv",index=False)
         #print(text)
+
+
 def NER(path, store):
+    output_dir = Path('./content/')
     #os.environ['CLASSPATH'] = "E:/USC/CSCI 544 - NLP/Project/stanford-ner-2020-11-17/stanford-ner.jar"
     #os.environ['STANFORD_MODELS'] = 'E:/USC/CSCI 544 - NLP/Project/stanford-corenlp-4.4.0-models-english/edu/stanford/nlp/models/ner'
     #os.environ['JAVAHOME'] = 'C:/Program Files/Java/jdk-12.0.2/bin/java.exe'
 
-
+    
     print("Loading from", output_dir)
     nlp_updated = spacy.load(output_dir)
     #doc = nlp_updated("Fridge can be ordered in FlipKart" )
@@ -138,6 +141,6 @@ def NER(path, store):
 
 if __name__ == "__main__":
     #json_to_csv()
-    #get_sample(100)
-    train_ner()
+    #get_sample(100, path)
+    #train_ner()
     NER('commentary.csv', True)
