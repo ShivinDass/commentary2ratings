@@ -92,7 +92,7 @@ def json_to_csv():
         #print(text)
 
 
-def NER(path, store):
+def NER(ip_file_path, op_file_path, store):
     output_dir = Path('./content/')
     #os.environ['CLASSPATH'] = "E:/USC/CSCI 544 - NLP/Project/stanford-ner-2020-11-17/stanford-ner.jar"
     #os.environ['STANFORD_MODELS'] = 'E:/USC/CSCI 544 - NLP/Project/stanford-corenlp-4.4.0-models-english/edu/stanford/nlp/models/ner'
@@ -101,19 +101,14 @@ def NER(path, store):
     
     print("Loading from", output_dir)
     nlp_updated = spacy.load(output_dir)
-    #doc = nlp_updated("Fridge can be ordered in FlipKart" )
-    #print("Entities", [(ent.text, ent.label_) for ent in doc.ents])
-    #nlp = spacy.load("en_core_web_sm")
-    #import en_core_web_sm
-    #nlp = en_core_web_sm.load()
 
-    df = pd.read_csv(path, usecols= ['commentary'])
+    df = pd.read_csv(ip_file_path, usecols= ['commentary'])
 
-    new_df = df.sample(100)
+    #new_df = df.sample(100)
 
     players = []
     teams = []
-    for comment in new_df['commentary'].values:
+    for comment in df['commentary'].values:
         
         doc = nlp_updated(comment)
         extracted_players = []
@@ -131,16 +126,43 @@ def NER(path, store):
     
 
     if store:
-        new_df["players"] = players
-        new_df['teams'] = teams
-        new_df.to_csv("test.csv", index=False)
+        df["players"] = players
+        df['teams'] = teams
+        df.to_csv(op_file_path, index=False)
 
     else:
         print(players)
         print(teams)
 
+def NER_from_string(comment):
+    output_dir = Path('./content/')
+    #os.environ['CLASSPATH'] = "E:/USC/CSCI 544 - NLP/Project/stanford-ner-2020-11-17/stanford-ner.jar"
+    #os.environ['STANFORD_MODELS'] = 'E:/USC/CSCI 544 - NLP/Project/stanford-corenlp-4.4.0-models-english/edu/stanford/nlp/models/ner'
+    #os.environ['JAVAHOME'] = 'C:/Program Files/Java/jdk-12.0.2/bin/java.exe'
+
+    
+    print("Loading from", output_dir)
+    nlp_updated = spacy.load(output_dir)
+
+        
+    doc = nlp_updated(comment)
+    extracted_players = []
+    extracted_teams = []
+
+    for t in doc.ents:
+        if t.label_ == "ORG":
+            extracted_teams.append(t)
+
+        elif t.label_ == "PERSON":
+            extracted_players.append(t)
+
+    
+    return extracted_players, extracted_teams
+
+
 if __name__ == "__main__":
     #json_to_csv()
     #get_sample(100, path)
     #train_ner()
-    NER('commentary.csv', True)
+    #NER('commentary.csv', 'test.csv', True)
+    print(NER_from_string("Federico Fernández (Swansea City) wins a free kick in the defensive half."))
