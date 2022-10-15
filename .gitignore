@@ -4,7 +4,3 @@ __pycache__
 experiments
 data_files
 venv
-commentary2ratings/named_entity_recognition/commentary/
-commentary2ratings/named_entity_recognition/commentary
-commentary2ratings/named_entity_recognition/*.zip
-commentary2ratings/named_entity_recognition/__pycache__
