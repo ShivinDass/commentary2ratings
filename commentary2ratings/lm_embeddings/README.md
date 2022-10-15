@@ -30,3 +30,7 @@ To test the correct functioning of ```bert.py``` execute: ```python3 bert.py```.
 - 9: Foul
 - 10: Hand ball
 - 11: Game delay
+
+## BERT t-SNE plot
+![BERT embeddings t-SNE plot](bert_tsne.png "BERT embeddings t-SNE plot")
+
