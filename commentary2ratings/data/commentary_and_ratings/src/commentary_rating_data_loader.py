@@ -1,7 +1,6 @@
 from datetime import datetime
 import json
 import os
-from numpy import int64
 import pandas as pd
 from torch.utils.data import Dataset
 
