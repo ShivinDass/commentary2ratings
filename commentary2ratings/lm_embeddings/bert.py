@@ -39,6 +39,7 @@ class BERTHelper():
 				outputs = self.model(tokenization_tensor, segments_tensor)
 				hidden = outputs[2]
 				sentence_embedding = outputs[1]
+				print(sentence_embedding.shape)
 			text_embeddings.append(sentence_embedding.numpy())
 		return text_embeddings
 			
@@ -57,6 +58,7 @@ def main():
 	bert.load_model()
 	#Obtain embeddings
 	embeddings = bert.embed_commentaries(data)
+	
 	#Remove dimensions equal to 1
 	embeddings = np.asarray(embeddings).squeeze()
 	#Visualize t-SNE plot

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
-def obtain_visualization(embeddings, ground_truth):
+def obtain_visualization(embeddings, ground_truth,title=None):
 	X_embedded = TSNE(n_components=2, learning_rate='auto', init='random', perplexity=5).fit_transform(embeddings)
 	tsne_result_df = pd.DataFrame({'tsne_1': X_embedded[:,0], 'tsne_2': X_embedded[:,1], 'label': ground_truth})
 	fig, ax = plt.subplots(1)
@@ -13,3 +13,5 @@ def obtain_visualization(embeddings, ground_truth):
 	ax.set_ylim(lim)
 	ax.set_aspect('equal')
 	ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0)
+	if title:
+		plt.savefig(title)
