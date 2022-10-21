@@ -33,11 +33,11 @@ To test the correct functioning of ```bert.py``` execute: ```python3 bert.py```.
 - 12: Red card
 
 ## BERT t-SNE plot
-![BERT embeddings t-SNE plot (perplexity=70)](bert_perplexity_70.png "BERT embeddings t-SNE plot with perplexity=70")
-![BERT embeddings t-SNE plot (perplexity=100)](bert_perplexity_100.png "BERT embeddings t-SNE plot with perplexity=100")
-![BERT embeddings t-SNE plot (perplexity=200)](bert_perplexity_200.png "BERT embeddings t-SNE plot with perplexity=200")
+- BERT embeddings t-SNE plot with perplexity=70 ![BERT embeddings t-SNE plot (perplexity=70)](bert_perplexity_70.png "BERT embeddings t-SNE plot with perplexity=70")
+- BERT embeddings t-SNE plot with perplexity=100 ![BERT embeddings t-SNE plot (perplexity=100)](bert_perplexity_100.png "BERT embeddings t-SNE plot with perplexity=100")
+- BERT embeddings t-SNE plot with perplexity=200 ![BERT embeddings t-SNE plot (perplexity=200)](bert_perplexity_200.png "BERT embeddings t-SNE plot with perplexity=200")
 
 ## XLNet t-SNE plot
-![XLNet embeddings t-SNE plot (perplexity=5)](xlnet_tsne.png "XLNet embeddings t-SNE plot with perplexity=5")
+- XLNet embeddings t-SNE plot with perplexity=5 ![XLNet embeddings t-SNE plot (perplexity=5)](xlnet_tsne.png "XLNet embeddings t-SNE plot with perplexity=5")
 
 
