@@ -6,8 +6,10 @@ from transformers import BertTokenizer, BertModel
 from torch.nn import functional as F
 import torch
 import numpy as np
-from train_data import TRAIN_DATA
 from visualization import obtain_visualization
+import pandas as pd
+from ast import literal_eval
+
 
 class BERTHelper():
 
@@ -43,15 +45,56 @@ class BERTHelper():
 			text_embeddings.append(sentence_embedding.numpy())
 		return text_embeddings
 			
-def load_data(data):
-	return [x[0] for x in data]
+def load_data():
+	df = pd.read_csv("../../data_files/player_comments_ratings.csv")
+	comments = df["comments"].values
+	TRAIN_DATA = [x for l in comments for x in literal_eval(l)]
+	LABELS = obtain_labels(TRAIN_DATA)
+	ind = np.where(LABELS == "None")
+	LABELS = np.delete(LABELS, ind)
+	TRAIN_DATA = np.delete(TRAIN_DATA, ind)
+	return TRAIN_DATA, LABELS
+
+def obtain_labels(data):
+  labels = []
+  for item in data:
+    low = item.lower()
+    if "substitu" in low:
+      labels.append("Substitution")
+    elif "yellow card" in low:
+      labels.append("Yellow card")
+    elif "second half" in low:
+      labels.append("Second half commentary")
+    elif "blocked attack" in low:
+      labels.append("Blocked attack")
+    elif "attack" in low:
+      labels.append("Attack")
+    elif "offside" in low:
+      labels.append("Offside")
+    elif "corner" in low:
+      labels.append("Corner")
+    elif "goal" in low:
+      labels.append("Goal")
+    elif "free kick" in low:
+      labels.append("Free kick")
+    elif "foul" in low:
+      labels.append("Foul")
+    elif "hand" in low:
+      labels.append("Hand ball")
+    elif "delay" in low:
+      labels.append("Game delay")
+    elif "red card" in low:
+      labels.append("Red card")
+    else:
+      labels.append("None")
+  return np.asarray(labels)
 
 def visualize_commentaries(embeddings, ground_truth=np.asarray([0,1,2,3,4,0,5,6,0,3,7,6,8,9,4,0,0,8,3,0,7,8,8,10,9,5,8,9,0,11,8])):
 	obtain_visualization(embeddings, ground_truth)
 
 def main():
 	#Import data
-	data = load_data(TRAIN_DATA)
+	data, labels = load_data()
 	#Create BERT Helper object
 	bert = BERTHelper()
 	#Initialize tokenizer and model
@@ -62,7 +105,7 @@ def main():
 	#Remove dimensions equal to 1
 	embeddings = np.asarray(embeddings).squeeze()
 	#Visualize t-SNE plot
-	visualize_commentaries(embeddings)
+	visualize_commentaries(embeddings, labels, title="BERT_embedding_perplexity_100.png")
 
 if __name__ == "__main__":
 	main()
