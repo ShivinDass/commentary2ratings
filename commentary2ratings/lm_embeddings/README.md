@@ -18,6 +18,7 @@ Using footbal commentaries to obtain their vector representations.
 
 To test the correct functioning of ```bert.py``` execute: ```python3 bert.py```. This will take the samples in the default data directory (assuming the instructions in the main README have been followed) ```../../data_files/player_comments_ratings.csv``` compute the embedding for each commentary. Then it generates the t-SNE plot by taking manually given labels following the schema below.
 
+
 - 0: Substitution of players
 - 1: Yellow card
 - 2: Second half comment
@@ -43,5 +44,3 @@ To test the correct functioning of ```bert.py``` execute: ```python3 bert.py```.
 ## XLNet t-SNE plot
 - XLNet embeddings t-SNE plot with perplexity=5 
 ![XLNet embeddings t-SNE plot (perplexity=5)](xlnet_tsne.png "XLNet embeddings t-SNE plot with perplexity=5")
-
-

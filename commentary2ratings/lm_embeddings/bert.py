@@ -10,7 +10,6 @@ from visualization import obtain_visualization
 import pandas as pd
 from ast import literal_eval
 
-
 class BERTHelper():
 
 	def __init__(self):
@@ -44,7 +43,7 @@ class BERTHelper():
 				print(sentence_embedding.shape)
 			text_embeddings.append(sentence_embedding.numpy())
 		return text_embeddings
-			
+
 def load_data():
 	df = pd.read_csv("../../data_files/player_comments_ratings.csv")
 	comments = df["comments"].values
@@ -95,6 +94,7 @@ def visualize_commentaries(embeddings, ground_truth=np.asarray([0,1,2,3,4,0,5,6,
 def main():
 	#Import data
 	data, labels = load_data()
+
 	#Create BERT Helper object
 	bert = BERTHelper()
 	#Initialize tokenizer and model
