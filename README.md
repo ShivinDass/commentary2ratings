@@ -30,3 +30,4 @@ data description
 - fixtures.csv : contains information about the fixtures. Important fields are date and team ids to uniquely identify a match
 - data_football_ratings.csv : contains player ratings. Using data and team names, identify the corresponding players from the game and fetch their ratings
 - commentary : folder containing 380 commentary files named by their unique fixture_id
+- player_comments_ratings.csv: contains players and their associated commentaries per fixture
