@@ -3,6 +3,7 @@ import json
 import os
 import pandas as pd
 from torch.utils.data import Dataset
+from ast import literal_eval
 
 class CommentaryAndRatings(Dataset):
 	"""
@@ -10,22 +11,23 @@ class CommentaryAndRatings(Dataset):
 	[fixture_id, player, player_rating, list_of_commentaries]
 	"""
 
-	def __init__(self, fixture_csv, ratings_csv, commentary_folder):
+	def __init__(self, fixture_csv=None, ratings_csv=None, commentary_folder=None):
 		"""
 		Initialization process. Reads in data and runs processing.
 		If the processed data already exists, load that file directly.
 		"""
 
 		# Check for the pre-processed data:
-		preprocessed_path = 'data_files/player_comments_ratings.csv'
+		preprocessed_path = os.path.join(os.environ['DATA_DIR'], 'player_comments_ratings.csv')
 		if not os.path.exists(preprocessed_path):
-			fixtures_df = pd.read_csv(fixture_csv)
-			ratings_df = pd.read_csv(ratings_csv)
+			assert (fixture_csv is not None) and (ratings_csv is not None) and (commentary_folder is not None)
+			fixtures_df = pd.read_csv(os.path.join(os.environ['DATA_DIR'], fixture_csv))
+			ratings_df = pd.read_csv(os.path.join(os.environ['DATA_DIR'], ratings_csv))
 			
-			self.commentary_rating = self.parseCommentary(commentary_folder, ratings_df, fixtures_df)
+			self.commentary_rating = self.parseCommentary(os.path.join(os.environ['DATA_DIR'], commentary_folder), ratings_df, fixtures_df)
 		else:
-			self.commentary_rating = pd.read_csv(preprocessed_path)
-		
+			self.commentary_rating = pd.read_csv(preprocessed_path, converters={'comments': literal_eval})
+			print(self.commentary_rating.dtypes)
 		# Remove the indices since we don't want them when we return items for training
 		self.commentary_rating = self.commentary_rating.reset_index(drop=True).values.tolist()
 
@@ -49,7 +51,7 @@ class CommentaryAndRatings(Dataset):
 		# Run through all of the commentary files and search for players within the commentary
 		for filename in os.listdir(commentary_folder):
 			fixture_id = os.path.splitext(filename)[0]
-			with open(os.path.join(commentary_folder, filename), 'r') as f:
+			with open(os.path.join(commentary_folder, filename), 'r', encoding='utf-8') as f:
 				commentary_data = json.load(f)['data']
 				for data in commentary_data:
 
@@ -103,8 +105,8 @@ class CommentaryAndRatings(Dataset):
 				new_comment_df = pd.DataFrame([[fixture_id, player, player_avg, comments]], columns=['fixture_id', 'player', 'rating', 'comments'])
 				player_rating_comment = pd.concat([player_rating_comment, new_comment_df])
 
-		# Write this out to file so we can skip this in the future
-		player_rating_comment.to_csv('data_files/player_comments_ratings.csv')
+		# # Write this out to file so we can skip this in the future
+		player_rating_comment.to_csv(os.path.join(os.environ['DATA_DIR'], 'player_comments_ratings.csv'))
 		return player_rating_comment
 			
 	def createPlayerList(self, ratings_df):
@@ -115,4 +117,11 @@ class CommentaryAndRatings(Dataset):
 		# to disambiguate from other players with William in their name
 		ratings_df['player'] = ratings_df['player'][ratings_df['player'] != 'William']
 		ratings_df['player'] = ratings_df['player'].dropna()
-		self.players = ratings_df['player'].drop_duplicates()
+		self.players = ratings_df['player'].drop_duplicates().dropna()
+
+if __name__=='__main__':
+	import random
+	data = CommentaryAndRatings('fixtures.csv', 'data_football_ratings.csv', 'commentary')
+	for i in range(10):
+		comments = data[random.randrange(0, len(data))]
+		print(comments[1:4], type(comments[4]), len(comments[4]), comments[4][0])
