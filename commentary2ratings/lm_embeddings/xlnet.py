@@ -2,34 +2,30 @@
 Load XL net from hugging face and generate embeddings for commentaries.
 Visualize commentaries using t-SNE plot.
 '''
-import re
-from send2trash import send2trash
-from transformers import XLNetTokenizer, XLNetModel,AutoTokenizer
-from torch.nn import functional as F
+from transformers import XLNetTokenizer, XLNetModel
 import torch
 import numpy as np
-from train_data import TRAIN_DATA
-from visualization import obtain_visualization
-
+from commentary2ratings.utils.lm_utils import load_commentaries_with_tags, tsne_visualize
 
 class XLNetHelper():
-
 
 	def __init__(self):
 		self.tokenizer = None
 		self.model = None
+		self.load_model()
+
 	def load_model(self):
 		self.tokenizer = XLNetTokenizer.from_pretrained('xlnet-base-cased')
 		self.model = XLNetModel.from_pretrained('xlnet-base-cased', output_hidden_states = True)
 
-	'''
-	inputs:
-		data. List of strings. Each string is a different commentary.
-	outputs:
-		text_embeddings. It is a numpy array with the sentence embeddings. One
-						 for each string in data.
-	'''
 	def embed_commentaries(self, data):
+		'''
+		inputs:
+			data. List of strings. Each string is a different commentary.
+		outputs:
+			text_embeddings. It is a numpy array with the sentence embeddings. One
+							for each string in data.
+		'''
 		text_embeddings = []
 		for text in data:
 			tokenization = self.tokenizer.tokenize(text)
@@ -47,29 +43,20 @@ class XLNetHelper():
 				sentence_embedding=torch.sum(sentence_embedding,dim=0)
 				
 			text_embeddings.append(sentence_embedding.numpy())
-		return text_embeddings
-			
-def load_data(data):
-	return [x[0] for x in data]
-
-def visualize_commentaries(embeddings, ground_truth=np.asarray([0,1,2,3,4,0,5,6,0,3,7,6,8,9,4,0,0,8,3,0,7,8,8,10,9,5,8,9,0,11,8]),title=None):
-    if title:
-        obtain_visualization(embeddings, ground_truth,title)
-    else:
-        obtain_visualization(embeddings, ground_truth)
+		return np.asarray(text_embeddings)
 
 def main():
-	#Import data
-	data = load_data(TRAIN_DATA)
-	#Create Xlnet Helper object
+	# Import data
+	TRAIN_DATA, LABELS = load_commentaries_with_tags()
+	
+	# Create Xlnet Helper object
 	xlnet = XLNetHelper()
-	#Initialize tokenizer and model
-	xlnet.load_model()
-	#Obtain embeddings
-	embeddings = xlnet.embed_commentaries(data)	
-	embeddings = np.asarray(embeddings).squeeze()
-	#Visualize t-SNE plot
-	visualize_commentaries(embeddings,title="xlnet_tsne.png")
+	
+	# Obtain embeddings
+	embeddings = xlnet.embed_commentaries(TRAIN_DATA)
+	
+	# Visualize t-SNE plot
+	tsne_visualize(embeddings, LABELS, perplexity=5, title="xlnet_tsne.png")
 
 
 if __name__ == "__main__":

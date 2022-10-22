@@ -33,7 +33,7 @@ To test the correct functioning of ```bert.py``` execute: ```python3 bert.py```.
 - 11: Game delay
 - 12: Red card
 
-## BERT t-SNE plot
+<!-- ## BERT t-SNE plot
 - BERT embeddings t-SNE plot with perplexity=70 
 ![BERT embeddings t-SNE plot (perplexity=70)](bert_perplexity_70.png "BERT embeddings t-SNE plot with perplexity=70")
 - BERT embeddings t-SNE plot with perplexity=100 
@@ -43,4 +43,4 @@ To test the correct functioning of ```bert.py``` execute: ```python3 bert.py```.
 
 ## XLNet t-SNE plot
 - XLNet embeddings t-SNE plot with perplexity=5 
-![XLNet embeddings t-SNE plot (perplexity=5)](xlnet_tsne.png "XLNet embeddings t-SNE plot with perplexity=5")
+![XLNet embeddings t-SNE plot (perplexity=5)](xlnet_tsne.png "XLNet embeddings t-SNE plot with perplexity=5") -->

@@ -7,3 +7,4 @@ spacy
 scikit-learn
 transformers==4.23.1
 seaborn
+sentencepiece

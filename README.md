@@ -16,10 +16,12 @@ cd commentary2ratings
 pip3 install -r requirements.txt
 pip3 install -e .
 ```
-5. Create data directory in the project repository,
+5. Create data and experiment directory in the project repository,
 ```
 mkdir ./data_files
 export DATA_DIR=./data_files
+mkdir ./experiments
+export EXP_DIR=./experiments
 ```
 
 ## Download Data
