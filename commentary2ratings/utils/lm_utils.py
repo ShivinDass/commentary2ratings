@@ -56,7 +56,7 @@ def tsne_visualize(embeddings, ground_truth, perplexity=100, title=None):
 	ax.set_aspect('equal')
 	ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0)
 	if title:
-		exp_dir = os.path.join(os.environ['EXP_DIR'], 'tsne_plots2')
+		exp_dir = os.path.join(os.environ['EXP_DIR'], 'tsne_plots')
 		if not os.path.exists(exp_dir):
 			os.makedirs(exp_dir)
 		plt.savefig(os.path.join(exp_dir, title))
