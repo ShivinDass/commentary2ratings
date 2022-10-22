@@ -31,3 +31,6 @@ TRAIN_DATA = [
     ("Delay in match Phil Bardsley  - Burnley -   - injury.", {"entities": [(15, 28, "PERSON"),(32, 39, "ORG")]}),
     ("Pedro Obiang  - West Ham United -  won a free kick in defence.", {"entities": [(0, 12, "PERSON"),(16, 31, "ORG")]}),
 ]
+
+import numpy as np
+LABELS = np.asarray([0,1,2,3,4,0,5,6,0,3,7,6,8,9,4,0,0,8,3,0,7,8,8,10,9,5,8,9,0,11,8])

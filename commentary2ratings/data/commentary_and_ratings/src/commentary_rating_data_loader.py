@@ -27,7 +27,7 @@ class CommentaryAndRatings(Dataset):
 			self.commentary_rating = self.parseCommentary(os.path.join(os.environ['DATA_DIR'], commentary_folder), ratings_df, fixtures_df)
 		else:
 			self.commentary_rating = pd.read_csv(preprocessed_path, converters={'comments': literal_eval})
-			print(self.commentary_rating.dtypes)
+
 		# Remove the indices since we don't want them when we return items for training
 		self.commentary_rating = self.commentary_rating.reset_index(drop=True).values.tolist()
 
@@ -121,7 +121,14 @@ class CommentaryAndRatings(Dataset):
 
 if __name__=='__main__':
 	import random
+	from commentary2ratings.lm_embeddings.bert import BERTHelper
+	from commentary2ratings.lm_embeddings.xlnet import XLNetHelper
+	
 	data = CommentaryAndRatings('fixtures.csv', 'data_football_ratings.csv', 'commentary')
+	
+	model = BERTHelper()
 	for i in range(10):
 		comments = data[random.randrange(0, len(data))]
-		print(comments[1:4], type(comments[4]), len(comments[4]), comments[4][0])
+		if len(comments[4])>0:
+			embeddings = model.embed_commentaries(comments[4])
+			print(embeddings.shape) 
