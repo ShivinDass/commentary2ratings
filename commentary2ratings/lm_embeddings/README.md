@@ -6,6 +6,10 @@ Using footbal commentaries to obtain their vector representations.
 - transformers 4.23.1
 - Can be installed by ```pip3 install transformers```
 
+- scipy 1.7.3
+- seaborn 0.11.2
+- matplotlib 3.2.2
+
 ## Files
 
 1. ```bert.py```: Contains a commentary embedding system using a BERT pretrained model.
