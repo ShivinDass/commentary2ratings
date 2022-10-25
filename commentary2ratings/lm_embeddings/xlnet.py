@@ -56,7 +56,7 @@ def main():
 	embeddings = xlnet.embed_commentaries(TRAIN_DATA)
 	
 	# Visualize t-SNE plot
-	tsne_visualize(embeddings, LABELS, perplexity=5, title="xlnet_tsne.png")
+	tsne_visualize(embeddings, LABELS, perplexity=100, title="xlnet_perplexity_100.png")
 
 
 if __name__ == "__main__":
