@@ -36,7 +36,7 @@ def load_commentaries_with_tags():
 		return np.asarray(labels)
 
 	df = pd.read_csv(os.path.join(os.environ['DATA_DIR'], 'player_comments_ratings.csv'), converters={'comments': literal_eval})
-	TRAIN_DATA = [x for l in df["comments"].values for x in l][:10]
+	TRAIN_DATA = [x for l in df["comments"].values for x in l]#[:10]
 	LABELS = obtain_labels(TRAIN_DATA)
 	
 	# Delete labels with value None
