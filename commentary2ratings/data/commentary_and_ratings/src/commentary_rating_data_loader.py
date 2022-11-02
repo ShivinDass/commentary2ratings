@@ -1,9 +1,14 @@
 from datetime import datetime
+import numpy as np
 import json
 import os
 import pandas as pd
 from torch.utils.data import Dataset
 from ast import literal_eval
+import torch
+import torch.nn.functional as F
+from commentary2ratings.lm_embeddings.bert import BERTHelper
+from commentary2ratings.lm_embeddings.xlnet import XLNetHelper
 
 class CommentaryAndRatings(Dataset):
 	"""
@@ -11,11 +16,13 @@ class CommentaryAndRatings(Dataset):
 	[fixture_id, player, player_rating, list_of_commentaries]
 	"""
 
-	def __init__(self, fixture_csv=None, ratings_csv=None, commentary_folder=None):
+	def __init__(self, fixture_csv=None, ratings_csv=None, commentary_folder=None, embed_class=BERTHelper):
 		"""
 		Initialization process. Reads in data and runs processing.
 		If the processed data already exists, load that file directly.
 		"""
+		# Load BERT or XLNet
+		self.embed_model = embed_class()
 
 		# Check for the pre-processed data:
 		preprocessed_path = os.path.join(os.environ['DATA_DIR'], 'player_comments_ratings.csv')
@@ -28,14 +35,15 @@ class CommentaryAndRatings(Dataset):
 		else:
 			self.commentary_rating = pd.read_csv(preprocessed_path, converters={'comments': literal_eval})
 
+		self.dataset = self.process_for_learning()
 		# Remove the indices since we don't want them when we return items for training
 		self.commentary_rating = self.commentary_rating.reset_index(drop=True).values.tolist()
 
 	def __len__(self):
-		return len(self.commentary_rating)
+		return self.dataset['rating'].shape[0]
 
 	def __getitem__(self, idx):
-		return self.commentary_rating[idx]
+		return {k: self.dataset[k][idx] for k in self.dataset}#self.commentary_rating[idx, :3] #'fixture_id', 'player', 'rating', 'comments'
 
 	def parseCommentary(self, commentary_folder, ratings_df, fixtures_df):
 		"""
@@ -119,16 +127,55 @@ class CommentaryAndRatings(Dataset):
 		ratings_df['player'] = ratings_df['player'].dropna()
 		self.players = ratings_df['player'].drop_duplicates().dropna()
 
+	def player_one_hot(self, player):
+		one_hot = torch.zeros(len(self.player2idx))
+		one_hot[self.player2idx[player]] = 1
+		return one_hot
+
+	def process_for_learning(self):
+		n_samples = len(self.commentary_rating)
+		self.player2idx = {p: i for i, p in enumerate(sorted(self.commentary_rating['player'].unique()))}
+		
+		dataset = {
+					'player': torch.zeros((n_samples, len(self.player2idx)), dtype=torch.float32),
+					'rating': torch.zeros(n_samples, dtype=torch.float32),
+					'padded_commentary_embeddings': [],
+					'commentary_len': torch.zeros(n_samples, dtype=torch.float32)
+				}
+		for idx, row in self.commentary_rating.iterrows():
+			print(idx)
+			dataset['player'][idx, self.player2idx[row['player']]] = 1
+			dataset['rating'][idx] = row['rating']
+
+			dataset['commentary_len'][idx] = len(row['comments'])
+			dataset['padded_commentary_embeddings'].append(torch.tensor(self.embed_model.embed_commentaries(row['comments']))[:, :3])
+		
+		max_len = torch.max(dataset['commentary_len'])
+		dataset['padded_commentary_embeddings'] = torch.stack([F.pad(comments, (0, 0, 0, int(max_len-n_comments))) 
+													for comments, n_comments in zip(dataset['padded_commentary_embeddings'], dataset['commentary_len'])])
+
+		_, indices = torch.sort(dataset['commentary_len'], descending=True)
+		dataset = {k : dataset[k][indices] for k in dataset}
+
+		return dataset
+		
+
 if __name__=='__main__':
 	import random
 	from commentary2ratings.lm_embeddings.bert import BERTHelper
 	from commentary2ratings.lm_embeddings.xlnet import XLNetHelper
+	from torch.utils.data import DataLoader
 	
 	data = CommentaryAndRatings('fixtures.csv', 'data_football_ratings.csv', 'commentary')
 	
-	model = BERTHelper()
-	for i in range(10):
-		comments = data[random.randrange(0, len(data))]
-		if len(comments[4])>0:
-			embeddings = model.embed_commentaries(comments[4])
-			print(embeddings.shape) 
+	# model = BERTHelper()
+	# for i in range(10):
+	# 	comments = data[random.randrange(0, len(data))]
+	# 	if len(comments[4])>0:
+	# 		embeddings = model.embed_commentaries(comments[4])
+	# 		print(embeddings.shape)
+
+	# loader = DataLoader(data, batch_size=10, shuffle=True)
+	# for batch in loader:
+	# 	print(batch['player'].shape, batch['rating'].shape)
+	# 	print(batch)
