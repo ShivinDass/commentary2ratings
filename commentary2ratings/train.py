@@ -68,7 +68,8 @@ class Trainer:
 
 if __name__=='__main__':
     # import numpy as np
-    # from commentary2ratings.models.test_c2r import TestC2R
+    from commentary2ratings.models.test_c2r import TestC2R
+    from commentary2ratings.data.commentary_and_ratings.src.commentary_rating_data_loader import CommentaryAndRatings
     # class Hello(Dataset):
     #     def __init__(self):
     #         self.W = np.asarray(np.random.randn(3,5), dtype=np.float32)
@@ -83,6 +84,10 @@ if __name__=='__main__':
     # data = Hello()
     # trainer = Trainer('run1', TestC2R,data,data,32).train(51)
 
-    # fix dataset
     # run param
-    Trainer('run1', model, train_data, val_data).train(51)
+    Trainer(
+                exp_name='test_run1', \
+                model_class = TestC2R, 
+                train_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='train'), \
+                val_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='val')
+            ).train(n_epoch=51)
