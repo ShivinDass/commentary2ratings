@@ -17,9 +17,9 @@ class CommentaryAndRatings(Dataset):
 		If the processed data already exists, load that file directly.
 		"""
 		self.mode = mode
-		dataset_path = os.path.join(os.environ['DATA_DIR'], processed_dataset_path)
+		self.dataset_path = os.path.join(os.environ['DATA_DIR'], processed_dataset_path)
 		self.dataset = {}
-		with h5py.File(dataset_path, 'r') as f:
+		with h5py.File(self.dataset_path, 'r') as f:
 			for k in f:
 				self.dataset[k] = np.array(f[k])
 	
