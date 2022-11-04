@@ -55,6 +55,7 @@ class Trainer:
     def create_log(self):
         self.log_path = os.path.join(os.environ['EXP_DIR'], 'rating_predictor', self.model_class.__name__, self.exp_name)
         self.logger = SummaryWriter(self.log_path)
+        self.logger.add_text('dataset', self.train_dataset.dataset_path, 0)
     
     def log_outputs(self, epoch, train_loss, val_loss):
         self.logger.add_scalar('loss/train', train_loss, epoch)
@@ -67,24 +68,9 @@ class Trainer:
         self.model.save_weights(epoch, self.log_path)
 
 if __name__=='__main__':
-    # import numpy as np
     from commentary2ratings.models.test_c2r import TestC2R
     from commentary2ratings.data.commentary_and_ratings.src.commentary_rating_data_loader import CommentaryAndRatings
-    # class Hello(Dataset):
-    #     def __init__(self):
-    #         self.W = np.asarray(np.random.randn(3,5), dtype=np.float32)
-
-    #     def __getitem__(self, index):
-    #         inp = np.asarray(np.random.randn(5), dtype=np.float32)
-    #         return {'inp': inp, 'target': self.W @ inp}
-        
-    #     def __len__(self):
-    #         return 100
-
-    # data = Hello()
-    # trainer = Trainer('run1', TestC2R,data,data,32).train(51)
-
-    # run param
+    
     Trainer(
                 exp_name='test_run1', \
                 model_class = TestC2R, 
