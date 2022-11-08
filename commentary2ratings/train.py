@@ -8,6 +8,13 @@ from torch.utils.tensorboard import SummaryWriter
 class Trainer:
 
     def __init__(self, exp_name, model_class, train_dataset, val_dataset, batch_size=64):
+
+        '''
+            exp_name: unique name of the current run(include details of the architecture. eg. SimpleC2R_64x3_relu_run1)
+            model_class: class of the pytorch model being used (eg. SimpleC2R)
+            train_dataset: dataset to be trained
+            val_dataset: dataset to be validated
+        '''
         self.exp_name = exp_name
         self.model_class = model_class
         self.model = model_class()
@@ -37,8 +44,9 @@ class Trainer:
                 total_loss += float(losses.detach())/len(loader)
 
             val_loss = None
-            if epoch%5==0:
+            if epoch%3==0:
                 with torch.no_grad():
+                    self.model.eval()
                     val_loss = 0
                     for batch in val_loader:
                         inputs = batch
@@ -47,7 +55,8 @@ class Trainer:
                     
                     print("epoch{} loss:".format(epoch), total_loss)
                     print("==> epoch{} val loss:".format(epoch), val_loss)
-                    self.save_checkpoint(epoch)
+                    if epoch%5:
+                        self.save_checkpoint(epoch)
             
             self.log_outputs(epoch, total_loss, val_loss)
         self.logger.close()
@@ -68,12 +77,15 @@ class Trainer:
         self.model.save_weights(epoch, self.log_path)
 
 if __name__=='__main__':
-    from commentary2ratings.models.test_c2r import TestC2R
+    import sys
+    from commentary2ratings.models import TestC2R, SimpleC2R, ProjC2R, SeqC2R
     from commentary2ratings.data.commentary_and_ratings.src.commentary_rating_data_loader import CommentaryAndRatings
-    
+
+    if len(sys.argv)<2:
+        raise Exception('Enter the unique name of the current run(include details of the architecture. eg. SimpleC2R_64x3_relu_run1)')
     Trainer(
-                exp_name='test_run1', \
+                exp_name=sys.argv[1],
                 model_class = TestC2R, 
-                train_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='train'), \
+                train_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='train'),
                 val_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='val')
             ).train(n_epoch=51)
