@@ -33,3 +33,5 @@ data description
 - data_football_ratings.csv : contains player ratings. Using data and team names, identify the corresponding players from the game and fetch their ratings
 - commentary : folder containing 380 commentary files named by their unique fixture_id
 - player_comments_ratings.csv: contains players and their associated commentaries per fixture
+- processed_data_bert.h5 : data file which is loaded by the dataloader. Contains 'player'(one hot vector), 'rating', 'padded_commentary_embedding.h5'(bert embedded commentary data of size NxLx768 where N is the number of data points and L largest number of commentaries for a player in a match), 'commentary_len'(true number of commentaries for that corresponding index <=L)
+- processed_data_xlnet.h5 : same as above except embeddings from xlnet
