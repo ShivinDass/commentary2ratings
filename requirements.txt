@@ -2,5 +2,11 @@ numpy
 matplotlib
 pillow
 torch==1.12.0
+tensorboard
 pandas
-scikit-learn
+spacy
+scikit-learn==1.0.2
+transformers==4.23.1
+seaborn
+sentencepiece
+h5py

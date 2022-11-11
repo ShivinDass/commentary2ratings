@@ -16,10 +16,12 @@ cd commentary2ratings
 pip3 install -r requirements.txt
 pip3 install -e .
 ```
-5. Create data directory in the project repository,
+5. Create data and experiment directory in the project repository,
 ```
 mkdir ./data_files
 export DATA_DIR=./data_files
+mkdir ./experiments
+export EXP_DIR=./experiments
 ```
 
 ## Download Data
@@ -30,3 +32,6 @@ data description
 - fixtures.csv : contains information about the fixtures. Important fields are date and team ids to uniquely identify a match
 - data_football_ratings.csv : contains player ratings. Using data and team names, identify the corresponding players from the game and fetch their ratings
 - commentary : folder containing 380 commentary files named by their unique fixture_id
+- player_comments_ratings.csv: contains players and their associated commentaries per fixture
+- processed_data_bert.h5 : data file which is loaded by the dataloader. Contains 'player'(one hot vector), 'rating', 'padded_commentary_embedding.h5'(bert embedded commentary data of size NxLx768 where N is the number of data points and L largest number of commentaries for a player in a match), 'commentary_len'(true number of commentaries for that corresponding index <=L)
+- processed_data_xlnet.h5 : same as above except embeddings from xlnet
