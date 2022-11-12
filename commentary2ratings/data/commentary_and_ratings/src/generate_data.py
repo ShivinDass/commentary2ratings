@@ -28,8 +28,8 @@ class GenerateData:
             self.commentary_rating = pd.read_csv(preprocessed_path, converters={'comments': literal_eval})
 
         dataset_path = os.path.join(os.environ['DATA_DIR'], processed_dataset_path)
-        if not os.path.exists(dataset_path):
-            self.process_for_learning(self.commentary_rating, dataset_path)
+        #if not os.path.exists(dataset_path):
+            #self.process_for_learning(self.commentary_rating, dataset_path)
 
     def parseCommentary(self, commentary_folder, ratings_df, fixtures_df):
         """
@@ -42,6 +42,20 @@ class GenerateData:
         ratings_df['player'] = ratings_df['player'][ratings_df['player'] != 'William']
         ratings_df['player'] = ratings_df['player'].dropna()
         players = ratings_df['player'].drop_duplicates().dropna()
+
+        # We don't want to use the Kicker ratings, so remove them:
+        ratings_df = ratings_df[ratings_df['rater'] != 'Kicker']
+
+        # Average the ratings
+        ratings_df['rating'] = ratings_df.groupby(['date', 'player'])['original_rating'].transform('mean')
+
+        # Remove the original rating since we don't need it now and de-duplicate
+        ratings_df = ratings_df.drop('original_rating', axis=1)
+        ratings_df = ratings_df.drop('rater', axis=1)
+        ratings_df = ratings_df.drop('is_human', axis=1)
+        ratings_df = ratings_df.drop_duplicates()
+
+        ratings_df.to_csv('edited_ratings.csv') 
         
         # Create a new DataFrame with consolidated player names and their associated comments
         player_comments = pd.DataFrame(columns=['fixture_id', 'player', 'comments'])
@@ -51,7 +65,7 @@ class GenerateData:
             fixture_id = os.path.splitext(filename)[0]
             with open(os.path.join(commentary_folder, filename), 'r', encoding='utf-8') as f:
                 commentary_data = json.load(f)['data']
-                for data in commentary_data:
+                for data in reversed(commentary_data):
 
                     comment = data['comment']
                     for player in players:
@@ -62,8 +76,14 @@ class GenerateData:
         # Group each comment with the same player name as a list
         player_comments=player_comments.groupby(['fixture_id', 'player'], sort=False)['comments'].apply(list).reset_index()
 
-        player_rating_comment = pd.DataFrame(columns=['fixture_id', 'player', 'rating', 'comments'])
+        # Define which columns to grab from rankings
+        rating_data_column_names = list(ratings_df.columns.values)
+        column_names_to_copy = rating_data_column_names[10:51] + rating_data_column_names[58:60] + rating_data_column_names[62:63] + rating_data_column_names[64:65]
 
+        player_rating_comment_columns = ['fixture_id', 'player', 'rating', 'comments'] + column_names_to_copy
+        player_rating_comment = pd.DataFrame(columns=player_rating_comment_columns)
+
+        
         # Now go through each player and add a rating from the ratings dataset
         for index, player_comment_row in player_comments.iterrows():
 
@@ -90,19 +110,13 @@ class GenerateData:
                 continue
 
             # We have the stat rows, so now we look for the matching stats
-            player_avg = 0
-            rating_count = 0
             for rating_idx, rating_row in ratings_for_id.iterrows():
                 
-                if rating_row['player'] == player_comment_row['player'] and rating_row['rater'] != 'Kicker':
-                    player_avg += rating_row['original_rating']
-                    rating_count += 1
-
-            if rating_count != 0:
-                player_avg /= rating_count
-                new_comment_df = pd.DataFrame([[fixture_id, player, player_avg, comments]], columns=['fixture_id', 'player', 'rating', 'comments'])
-                player_rating_comment = pd.concat([player_rating_comment, new_comment_df])
-
+                if rating_row['player'] == player_comment_row['player']:
+                    new_df_list = [fixture_id, player, comments] + ratings_for_id[column_names_to_copy]
+                    new_comment_df = pd.DataFrame([new_df_list], columns=player_rating_comment_columns)
+                    player_rating_comment = pd.concat([player_rating_comment, new_comment_df])
+            
         # # Write this out to file so we can skip this in the future
         player_rating_comment.to_csv(os.path.join(os.environ['DATA_DIR'], 'player_comments_ratings.csv'))
         return player_rating_comment
@@ -140,5 +154,5 @@ class GenerateData:
         return dataset
 
 if __name__=='__main__':
-    data_gen = GenerateData(processed_dataset_path='processed_data_bert.h5', embed_class=BERTHelper)
+    data_gen = GenerateData(fixture_csv='fixtures.csv', ratings_csv='data_football_ratings.csv',commentary_folder='commentary', processed_dataset_path='processed_data_bert.h5', embed_class=BERTHelper)
     
