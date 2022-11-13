@@ -150,5 +150,5 @@ class GenerateData:
         return dataset
 
 if __name__=='__main__':
-    data_gen = GenerateData(fixture_csv='fixtures.csv', ratings_csv='data_football_ratings.csv',commentary_folder='commentary', processed_dataset_path='processed_data_bert.h5', embed_class=BERTHelper)
+    data_gen = GenerateData(processed_dataset_path='processed_data_bert.h5', embed_class=BERTHelper)
     
