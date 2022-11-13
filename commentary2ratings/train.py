@@ -34,6 +34,9 @@ class Trainer:
             total_loss = 0
             for batch in loader:
                 inputs = batch
+                #print(inputs['padded_commentary_embedding'].shape)
+                #print(inputs['player'][0])
+                #break
                 
                 optimizer.zero_grad()
                 outputs = self.model(inputs)
@@ -85,7 +88,7 @@ if __name__=='__main__':
         raise Exception('Enter the unique name of the current run(include details of the architecture. eg. SimpleC2R_64x3_relu_run1)')
     Trainer(
                 exp_name=sys.argv[1],
-                model_class = TestC2R, 
+                model_class = SeqC2R, 
                 train_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='train'),
                 val_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='val')
             ).train(n_epoch=51)

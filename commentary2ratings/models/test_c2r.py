@@ -17,6 +17,8 @@ class TestC2R(BaseModel):
     def forward(self, inputs):
         embeddings = torch.sum(inputs['padded_commentary_embedding'], dim=1)/inputs['commentary_len'][:, None]
         embedding_and_player = torch.cat((embeddings, inputs['player']), dim=-1)
+        print(embeddings.shape)
+        print(embedding_and_player.shape)
         return self.model(embedding_and_player)
     
     def loss(self, outputs, inputs):
