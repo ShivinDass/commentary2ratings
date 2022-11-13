@@ -28,8 +28,8 @@ class GenerateData:
             self.commentary_rating = pd.read_csv(preprocessed_path, converters={'comments': literal_eval})
 
         dataset_path = os.path.join(os.environ['DATA_DIR'], processed_dataset_path)
-        #if not os.path.exists(dataset_path):
-            #self.process_for_learning(self.commentary_rating, dataset_path)
+        if not os.path.exists(dataset_path):
+            self.process_for_learning(self.commentary_rating, dataset_path)
 
     def parseCommentary(self, commentary_folder, ratings_df, fixtures_df):
         """
