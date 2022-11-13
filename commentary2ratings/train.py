@@ -36,6 +36,9 @@ class Trainer:
             total_loss = 0
             for batch in loader:
                 inputs = batch
+                #print(inputs['padded_commentary_embedding'].shape)
+                #print(inputs['player'][0])
+                #break
                 
                 optimizer.zero_grad()
                 outputs = self.model(inputs)
