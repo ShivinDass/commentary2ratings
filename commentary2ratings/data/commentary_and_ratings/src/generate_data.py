@@ -50,12 +50,8 @@ class GenerateData:
         ratings_df['rating'] = ratings_df.groupby(['date', 'player'])['original_rating'].transform('mean')
 
         # Remove the original rating since we don't need it now and de-duplicate
-        ratings_df = ratings_df.drop('original_rating', axis=1)
-        ratings_df = ratings_df.drop('rater', axis=1)
-        ratings_df = ratings_df.drop('is_human', axis=1)
+        ratings_df = ratings_df.drop(['original_rating', 'rater', 'is_human'], axis=1)
         ratings_df = ratings_df.drop_duplicates()
-
-        ratings_df.to_csv('edited_ratings.csv') 
         
         # Create a new DataFrame with consolidated player names and their associated comments
         player_comments = pd.DataFrame(columns=['fixture_id', 'player', 'comments'])
@@ -78,12 +74,11 @@ class GenerateData:
 
         # Define which columns to grab from rankings
         rating_data_column_names = list(ratings_df.columns.values)
-        column_names_to_copy = rating_data_column_names[10:51] + rating_data_column_names[58:60] + rating_data_column_names[62:63] + rating_data_column_names[64:65]
+        column_names_to_copy = rating_data_column_names[7:49] + rating_data_column_names[55:57] + rating_data_column_names[58:59] + rating_data_column_names[60:61]
 
-        player_rating_comment_columns = ['fixture_id', 'player', 'rating', 'comments'] + column_names_to_copy
+        player_rating_comment_columns = ['fixture_id', 'player', 'comments'] + column_names_to_copy
         player_rating_comment = pd.DataFrame(columns=player_rating_comment_columns)
 
-        
         # Now go through each player and add a rating from the ratings dataset
         for index, player_comment_row in player_comments.iterrows():
 
@@ -113,7 +108,8 @@ class GenerateData:
             for rating_idx, rating_row in ratings_for_id.iterrows():
                 
                 if rating_row['player'] == player_comment_row['player']:
-                    new_df_list = [fixture_id, player, comments] + ratings_for_id[column_names_to_copy]
+                    to_copy = rating_row[column_names_to_copy].tolist()
+                    new_df_list = [fixture_id, player, comments] + to_copy
                     new_comment_df = pd.DataFrame([new_df_list], columns=player_rating_comment_columns)
                     player_rating_comment = pd.concat([player_rating_comment, new_comment_df])
             
