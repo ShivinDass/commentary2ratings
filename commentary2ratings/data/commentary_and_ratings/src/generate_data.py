@@ -17,6 +17,7 @@ class GenerateData:
         # Load BERT or XLNet
         self.embed_model = embed_class()
 
+        print("==> Matching commentaries and ratings")
         preprocessed_path = os.path.join(os.environ['DATA_DIR'], 'player_comments_ratings.csv')
         if not os.path.exists(preprocessed_path):
             assert (fixture_csv is not None) and (ratings_csv is not None) and (commentary_folder is not None)
@@ -27,6 +28,7 @@ class GenerateData:
         else:
             self.commentary_rating = pd.read_csv(preprocessed_path, converters={'comments': literal_eval})
 
+        print("==> Embedding commentaries and storing hdf5 file")
         dataset_path = os.path.join(os.environ['DATA_DIR'], processed_dataset_path)
         if not os.path.exists(dataset_path):
             self.process_for_learning(self.commentary_rating, dataset_path)
@@ -125,9 +127,11 @@ class GenerateData:
                     'player': torch.zeros((n_samples, len(self.player2idx)), dtype=torch.float32, requires_grad=False),
                     'rating': torch.zeros(n_samples, dtype=torch.float32, requires_grad=False),
                     'padded_commentary_embedding': [],
-                    'commentary_len': torch.zeros(n_samples, dtype=torch.float32, requires_grad=False)
+                    'commentary_len': torch.zeros(n_samples, dtype=torch.float32, requires_grad=False),
+                    'player_stats': torch.zeros(n_samples, 46, dtype=torch.float32, requires_grad=False)
                 }
-        for idx, row in tqdm(self.commentary_rating.iterrows()):
+        for idx, row in tqdm(enumerate(self.commentary_rating.itertuples(index=False))):
+            row = row._asdict()
             if idx>=n_samples:
                 break
             dataset['player'][idx, self.player2idx[row['player']]] = 1
@@ -135,6 +139,12 @@ class GenerateData:
 
             dataset['commentary_len'][idx] = len(row['comments'])
             dataset['padded_commentary_embedding'].append(torch.tensor(self.embed_model.embed_commentaries(row['comments']), requires_grad=False))
+            
+            idx_stats = 0
+            for k in row:
+                if k not in ['comments', 'player', 'rating', 'fixture_id']:
+                    dataset['player_stats'][idx, idx_stats] = row[k]
+                    idx_stats += 1
 
         max_len = torch.max(dataset['commentary_len'])
         dataset['padded_commentary_embedding'] = torch.stack([F.pad(comments, (0, 0, 0, int(max_len-n_comments))) 
