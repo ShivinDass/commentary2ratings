@@ -11,6 +11,52 @@ from tqdm import tqdm
 from commentary2ratings.lm_embeddings.bert import BERTHelper
 from commentary2ratings.lm_embeddings.xlnet import XLNetHelper
 
+stats_list = set({'goals',
+'assists',
+'shots_ontarget',
+'shots_offtarget',
+'shotsblocked',
+'chances2score',
+'drib_success',
+'drib_unsuccess',
+'keypasses',
+'touches',
+'passes_acc',
+'passes_inacc',
+'crosses_acc',
+'crosses_inacc',
+'lballs_acc',
+'lballs_inacc',
+'grduels_w',
+'grduels_l',
+'aerials_w',
+'aerials_l',
+'poss_lost',
+'fouls',
+'wasfouled',
+'clearances',
+'stop_shots',
+'interceptions',
+'tackles',
+'dribbled_past',
+'tballs_acc',
+'tballs_inacc',
+'ycards',
+'rcards',
+'dangmistakes',
+'countattack',
+'offsides',
+'goals_ag_otb',
+'goals_ag_itb',
+'saves_itb',
+'saves_otb',
+'saved_pen',
+'missed_penalties',
+'owngoals',
+'win',
+'lost',
+'minutesPlayed'})
+
 class GenerateData:
 
     def __init__(self, fixture_csv=None, ratings_csv=None, commentary_folder=None, processed_dataset_path=None, embed_class=BERTHelper):
@@ -30,8 +76,7 @@ class GenerateData:
 
         print("==> Embedding commentaries and storing hdf5 file")
         dataset_path = os.path.join(os.environ['DATA_DIR'], processed_dataset_path)
-        if not os.path.exists(dataset_path):
-            self.process_for_learning(self.commentary_rating, dataset_path)
+        self.process_for_learning(self.commentary_rating, dataset_path)
 
     def parseCommentary(self, commentary_folder, ratings_df, fixtures_df):
         """
@@ -120,7 +165,7 @@ class GenerateData:
         return player_rating_comment
         
     def process_for_learning(self, commentary_rating, dataset_path):
-        n_samples = len(commentary_rating)
+        n_samples = 3#len(commentary_rating)
         self.player2idx = {p: i for i, p in enumerate(sorted(commentary_rating['player'].unique()))}
         
         dataset = {
@@ -142,7 +187,8 @@ class GenerateData:
             
             idx_stats = 0
             for k in row:
-                if k not in ['comments', 'player', 'rating', 'fixture_id']:
+                if k in stats_list:
+                    print(k)
                     dataset['player_stats'][idx, idx_stats] = row[k]
                     idx_stats += 1
 
@@ -156,7 +202,6 @@ class GenerateData:
         with h5py.File(dataset_path, 'w') as f:
             for k in dataset:
                 f.create_dataset(k, data=dataset[k])
-
         return dataset
 
 if __name__=='__main__':

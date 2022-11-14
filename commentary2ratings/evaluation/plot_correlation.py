@@ -53,9 +53,9 @@ class PlotCorrelation:
         pred_ratings = np.concatenate(pred_ratings)
         true_ratings = np.concatenate(true_ratings)
 
-        if self.data.norm_ratings:
-            pred_ratings = pred_ratings*self.data.norm_stddev + self.data.norm_mean
-            true_ratings = true_ratings*self.data.norm_stddev + self.data.norm_mean
+        if self.data.normalize:
+            pred_ratings = pred_ratings*self.data.rating_mean + self.data.rating_stddev
+            true_ratings = true_ratings*self.data.rating_stddev + self.data.rating_stddev
 
         plt.figure()
         plt.scatter(true_ratings, pred_ratings)
@@ -68,7 +68,7 @@ class PlotCorrelation:
 
 if __name__=='__main__':
     eval = PlotCorrelation(
-                    data=CommentaryAndRatings('processed_data_bert.h5', mode='val', norm_ratings=True, min_comments=4),
+                    data=CommentaryAndRatings('processed_data_bert.h5', mode='val', normalize=True, min_comments=1),
                     model_class=TestC2R,
                     model_weights_path=os.path.join(os.environ['EXP_DIR'], 'rating_predictor/TestC2R/norm_min4_512_256_128_1/weights')
                 )
