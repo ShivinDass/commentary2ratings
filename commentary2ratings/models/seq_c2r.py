@@ -14,8 +14,8 @@ class SeqC2R(BaseModel):
         #   #         # --> #         # ..... --> #         # --> embedding -->  # --> # --> #
         #   ###########     ###########           ###########                    #     #
         #                                                                        #
-        hidden_size = 27
-        self.lstm = nn.LSTM(768, hidden_size, 3, batch_first = True, dropout = 0.2)
+        hidden_size = 54
+        self.lstm = nn.LSTM(768, hidden_size, 2, batch_first = True, dropout = 0.2)
         self.fc1 = nn.Linear(hidden_size,256)
         self.fc2 = nn.Linear(256,128)
         self.fc3 = nn.Linear(128,1)
@@ -26,7 +26,11 @@ class SeqC2R(BaseModel):
     def forward(self, inputs):
 
         ####without concat (make sure lstm above does not have +452)
-        x,_ = self.lstm(inputs['padded_commentary_embedding'])
+        #h0 = torch.randn(1, 64, 27)
+        #c0 = torch.randn(1, 64, 27)
+        #print(inputs['padded_commentary_embedding'].shape)
+        x,_ = self.lstm(inputs['padded_commentary_embedding'].flip((1)))
+        #print(x.shape)
         
         ###TO concat####
         #(make sure lstm above has  +452)
@@ -58,4 +62,8 @@ class SeqC2R(BaseModel):
         
     
     def loss(self, outputs, inputs):
+        #print(inputs['rating'].shape)
         return nn.MSELoss()(outputs, inputs['rating'])
+
+if __name__ == "__main__":
+    from commentary2ratings.commentary2ratings.train import Trainer
