@@ -165,7 +165,7 @@ class GenerateData:
         return player_rating_comment
         
     def process_for_learning(self, commentary_rating, dataset_path):
-        n_samples = 3#len(commentary_rating)
+        n_samples = len(commentary_rating)
         self.player2idx = {p: i for i, p in enumerate(sorted(commentary_rating['player'].unique()))}
         
         dataset = {
@@ -188,7 +188,6 @@ class GenerateData:
             idx_stats = 0
             for k in row:
                 if k in stats_list:
-                    print(k)
                     dataset['player_stats'][idx, idx_stats] = row[k]
                     idx_stats += 1
 

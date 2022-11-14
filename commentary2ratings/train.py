@@ -46,7 +46,7 @@ class Trainer:
                 total_loss += float(losses.detach())/len(loader)
 
             val_loss = None
-            if epoch%1==0:
+            if epoch%5==0:
                 with torch.no_grad():
                     self.model.eval()
                     val_loss = 0
