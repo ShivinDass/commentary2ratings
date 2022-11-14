@@ -7,8 +7,10 @@ class TestC2R(BaseModel):
     def __init__(self):
         super().__init__()
         self.model = nn.Sequential(
-                        nn.Linear(768+452, 256),
-                        nn.LeakyReLU(),
+                        nn.Linear(768+452, 512),
+                        nn.LeakyReLU(0.2),
+                        nn.Linear(512, 256),
+                        nn.LeakyReLU(0.2),
                         nn.Linear(256, 128),
                         nn.LeakyReLU(0.2),
                         nn.Linear(128, 1)
