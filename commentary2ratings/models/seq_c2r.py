@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from commentary2ratings.models.base_model import BaseModel
 
 class SeqC2R(BaseModel):
@@ -14,25 +15,36 @@ class SeqC2R(BaseModel):
         #   #         # --> #         # ..... --> #         # --> embedding -->  # --> # --> #
         #   ###########     ###########           ###########                    #     #
         #                                                                        #
-        hidden_size = 54
-        self.lstm = nn.LSTM(768, hidden_size, 2, batch_first = True, dropout = 0.2)
-        self.fc1 = nn.Linear(hidden_size,256)
+        self.hidden_size = 64
+        self.lstm = nn.LSTM(768, self.hidden_size, 2, batch_first = True, dropout = 0.2)
+        self.fc1 = nn.Linear(self.hidden_size,256)
         self.fc2 = nn.Linear(256,128)
         self.fc3 = nn.Linear(128,1)
 
-        self.relu = nn.LeakyReLU(0.2)
+        self.relu = nn.ReLU(0.2)
 
     
     def forward(self, inputs):
 
         ####without concat (make sure lstm above does not have +452)
-        #h0 = torch.randn(1, 64, 27)
-        #c0 = torch.randn(1, 64, 27)
+        #h0 = torch.randn(1, inputs['padded_commentary_embedding'].shape[0], 27)
+        #c0 = torch.randn(1, inputs['padded_commentary_embedding'].shape[0], 27)
         #print(inputs['padded_commentary_embedding'].shape)
-        x,_ = self.lstm(inputs['padded_commentary_embedding'].flip((1)))
+        #h0 = torch.randn(2, inputs['padded_commentary_embedding'].shape[0], 64)
+        #c0 = torch.randn(2, inputs['padded_commentary_embedding'].shape[0], 64)
+        #print(inputs['padded_commentary_embedding'].shape)
+        #print(inputs["commentary_len"][:5])
+        ip = inputs['padded_commentary_embedding'].flip((1))  #since emma mentioned that its in the exact opposite order, i've flipped the commentaries
+        
+        
+        ip = pack_padded_sequence(ip, inputs["commentary_len"], batch_first=True, enforce_sorted=False)
+        #print(ip)
+        
+        x,(hn,cn) = self.lstm(ip)
         #print(x.shape)
         
-        ###TO concat####
+        ###TO CONCAT####
+        #I dont think concat can be used when using pad_packed_sequences
         #(make sure lstm above has  +452)
 
         ##get player##
@@ -49,7 +61,16 @@ class SeqC2R(BaseModel):
         #print(embeds.shape)
         #x,_ = self.lstm(embeds)
         
-        x = x[:,-1,:]
+        x,_ = pad_packed_sequence(x, batch_first=True)
+        
+        #x = x.view(-1, self.hidden_size)
+        #x = x.squeeze()[-1, :]
+        #print(x.shape)
+        #print(hn.shape)
+        #print(cn.shape)
+        #print(x.shape)
+        
+        x = x[:,-1,:] #get last output
         x = self.relu(x)
         x = self.fc1(x)
         #print(x.shape)
@@ -57,7 +78,12 @@ class SeqC2R(BaseModel):
         x = self.fc2(x)
         x = self.relu(x)
         y = self.fc3(x)
+
+        #Tried adding a relu at the end, not quite ure if it will help but its not harming it either
+        y = self.relu(y)
         #print(y.shape)
+        #y = y.view(inputs['padded_commentary_embedding'].shape[0], -1)
+        #y = y[:,-1]
         return y
         
     
