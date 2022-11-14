@@ -61,4 +61,5 @@ if __name__=='__main__':
 
 	loader = DataLoader(data, batch_size=64, shuffle=True)
 	for batch in loader:
-		print(batch['rating'])
+		for k in batch:
+			print(k, batch[k].shape)
