@@ -46,7 +46,7 @@ class Trainer:
                 total_loss += float(losses.detach())/len(loader)
 
             val_loss = None
-            if epoch%5==0:
+            if epoch%10==0:
                 with torch.no_grad():
                     self.model.eval()
                     val_loss = 0
@@ -58,7 +58,7 @@ class Trainer:
                     print("epoch{} loss:".format(epoch), total_loss)
                     print("==> epoch{} val loss:".format(epoch), val_loss)
                     self.save_checkpoint(epoch)
-            
+                self.model.train()
             self.log_outputs(epoch, total_loss, val_loss)
         self.logger.close()
 
@@ -94,4 +94,4 @@ if __name__=='__main__':
                 model_class = TestC2R, 
                 train_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='train', normalize=args.normalize, min_comments=args.min_comments),
                 val_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='val', normalize=args.normalize, min_comments=args.min_comments)
-            ).train(n_epoch=51)
+            ).train(n_epoch=501)

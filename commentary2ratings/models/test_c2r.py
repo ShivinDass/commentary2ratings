@@ -8,10 +8,13 @@ class TestC2R(BaseModel):
         super().__init__()
         self.model = nn.Sequential(
                         nn.Linear(768+452+46, 512),
+                        nn.BatchNorm1d(512),
                         nn.LeakyReLU(0.2),
                         nn.Linear(512, 256),
+                        nn.BatchNorm1d(256),
                         nn.LeakyReLU(0.2),
                         nn.Linear(256, 128),
+                        nn.BatchNorm1d(128),
                         nn.LeakyReLU(0.2),
                         nn.Linear(128, 1)
                     )
@@ -20,7 +23,7 @@ class TestC2R(BaseModel):
         embeddings = torch.sum(inputs['padded_commentary_embedding'], dim=1)/inputs['commentary_len'][:, None]
         embedding_and_player = torch.cat((embeddings, inputs['player'], inputs['player_stats']), dim=-1)
         return self.model(embedding_and_player)
-    
+
     def loss(self, outputs, inputs):
         return nn.MSELoss()(outputs, inputs['rating'])
 
