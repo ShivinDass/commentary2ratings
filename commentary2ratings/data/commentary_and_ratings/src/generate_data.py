@@ -11,12 +11,59 @@ from tqdm import tqdm
 from commentary2ratings.lm_embeddings.bert import BERTHelper
 from commentary2ratings.lm_embeddings.xlnet import XLNetHelper
 
+stats_list = set({'goals',
+'assists',
+'shots_ontarget',
+'shots_offtarget',
+'shotsblocked',
+'chances2score',
+'drib_success',
+'drib_unsuccess',
+'keypasses',
+'touches',
+'passes_acc',
+'passes_inacc',
+'crosses_acc',
+'crosses_inacc',
+'lballs_acc',
+'lballs_inacc',
+'grduels_w',
+'grduels_l',
+'aerials_w',
+'aerials_l',
+'poss_lost',
+'fouls',
+'wasfouled',
+'clearances',
+'stop_shots',
+'interceptions',
+'tackles',
+'dribbled_past',
+'tballs_acc',
+'tballs_inacc',
+'ycards',
+'rcards',
+'dangmistakes',
+'countattack',
+'offsides',
+'goals_ag_otb',
+'goals_ag_itb',
+'saves_itb',
+'saves_otb',
+'saved_pen',
+'missed_penalties',
+'owngoals',
+'win',
+'lost',
+'minutesPlayed'})
+
 class GenerateData:
 
     def __init__(self, fixture_csv=None, ratings_csv=None, commentary_folder=None, processed_dataset_path=None, embed_class=BERTHelper):
         # Load BERT or XLNet
         self.embed_model = embed_class()
 
+        print("==> Matching commentaries and ratings")
         preprocessed_path = os.path.join(os.environ['DATA_DIR'], 'player_comments_ratings.csv')
         if not os.path.exists(preprocessed_path):
             assert (fixture_csv is not None) and (ratings_csv is not None) and (commentary_folder is not None)
@@ -27,9 +74,9 @@ class GenerateData:
         else:
             self.commentary_rating = pd.read_csv(preprocessed_path, converters={'comments': literal_eval})
 
+        print("==> Embedding commentaries and storing hdf5 file")
         dataset_path = os.path.join(os.environ['DATA_DIR'], processed_dataset_path)
-        if not os.path.exists(dataset_path):
-            self.process_for_learning(self.commentary_rating, dataset_path)
+        self.process_for_learning(self.commentary_rating, dataset_path)
 
     def parseCommentary(self, commentary_folder, ratings_df, fixtures_df):
         """
@@ -42,6 +89,16 @@ class GenerateData:
         ratings_df['player'] = ratings_df['player'][ratings_df['player'] != 'William']
         ratings_df['player'] = ratings_df['player'].dropna()
         players = ratings_df['player'].drop_duplicates().dropna()
+
+        # We don't want to use the Kicker ratings, so remove them:
+        ratings_df = ratings_df[ratings_df['rater'] != 'Kicker']
+
+        # Average the ratings
+        ratings_df['rating'] = ratings_df.groupby(['date', 'player'])['original_rating'].transform('mean')
+
+        # Remove the original rating since we don't need it now and de-duplicate
+        ratings_df = ratings_df.drop(['original_rating', 'rater', 'is_human'], axis=1)
+        ratings_df = ratings_df.drop_duplicates()
         
         # Create a new DataFrame with consolidated player names and their associated comments
         player_comments = pd.DataFrame(columns=['fixture_id', 'player', 'comments'])
@@ -51,7 +108,7 @@ class GenerateData:
             fixture_id = os.path.splitext(filename)[0]
             with open(os.path.join(commentary_folder, filename), 'r', encoding='utf-8') as f:
                 commentary_data = json.load(f)['data']
-                for data in commentary_data:
+                for data in reversed(commentary_data):
 
                     comment = data['comment']
                     for player in players:
@@ -62,7 +119,12 @@ class GenerateData:
         # Group each comment with the same player name as a list
         player_comments=player_comments.groupby(['fixture_id', 'player'], sort=False)['comments'].apply(list).reset_index()
 
-        player_rating_comment = pd.DataFrame(columns=['fixture_id', 'player', 'rating', 'comments'])
+        # Define which columns to grab from rankings
+        rating_data_column_names = list(ratings_df.columns.values)
+        column_names_to_copy = rating_data_column_names[7:49] + rating_data_column_names[55:57] + rating_data_column_names[58:59] + rating_data_column_names[60:61]
+
+        player_rating_comment_columns = ['fixture_id', 'player', 'comments'] + column_names_to_copy
+        player_rating_comment = pd.DataFrame(columns=player_rating_comment_columns)
 
         # Now go through each player and add a rating from the ratings dataset
         for index, player_comment_row in player_comments.iterrows():
@@ -90,19 +152,14 @@ class GenerateData:
                 continue
 
             # We have the stat rows, so now we look for the matching stats
-            player_avg = 0
-            rating_count = 0
             for rating_idx, rating_row in ratings_for_id.iterrows():
                 
-                if rating_row['player'] == player_comment_row['player'] and rating_row['rater'] != 'Kicker':
-                    player_avg += rating_row['original_rating']
-                    rating_count += 1
-
-            if rating_count != 0:
-                player_avg /= rating_count
-                new_comment_df = pd.DataFrame([[fixture_id, player, player_avg, comments]], columns=['fixture_id', 'player', 'rating', 'comments'])
-                player_rating_comment = pd.concat([player_rating_comment, new_comment_df])
-
+                if rating_row['player'] == player_comment_row['player']:
+                    to_copy = rating_row[column_names_to_copy].tolist()
+                    new_df_list = [fixture_id, player, comments] + to_copy
+                    new_comment_df = pd.DataFrame([new_df_list], columns=player_rating_comment_columns)
+                    player_rating_comment = pd.concat([player_rating_comment, new_comment_df])
+            
         # # Write this out to file so we can skip this in the future
         player_rating_comment.to_csv(os.path.join(os.environ['DATA_DIR'], 'player_comments_ratings.csv'))
         return player_rating_comment
@@ -115,9 +172,11 @@ class GenerateData:
                     'player': torch.zeros((n_samples, len(self.player2idx)), dtype=torch.float32, requires_grad=False),
                     'rating': torch.zeros(n_samples, dtype=torch.float32, requires_grad=False),
                     'padded_commentary_embedding': [],
-                    'commentary_len': torch.zeros(n_samples, dtype=torch.float32, requires_grad=False)
+                    'commentary_len': torch.zeros(n_samples, dtype=torch.float32, requires_grad=False),
+                    'player_stats': torch.zeros(n_samples, 46, dtype=torch.float32, requires_grad=False)
                 }
-        for idx, row in tqdm(self.commentary_rating.iterrows()):
+        for idx, row in tqdm(enumerate(self.commentary_rating.itertuples(index=False))):
+            row = row._asdict()
             if idx>=n_samples:
                 break
             dataset['player'][idx, self.player2idx[row['player']]] = 1
@@ -125,6 +184,12 @@ class GenerateData:
 
             dataset['commentary_len'][idx] = len(row['comments'])
             dataset['padded_commentary_embedding'].append(torch.tensor(self.embed_model.embed_commentaries(row['comments']), requires_grad=False))
+            
+            idx_stats = 0
+            for k in row:
+                if k in stats_list:
+                    dataset['player_stats'][idx, idx_stats] = row[k]
+                    idx_stats += 1
 
         max_len = torch.max(dataset['commentary_len'])
         dataset['padded_commentary_embedding'] = torch.stack([F.pad(comments, (0, 0, 0, int(max_len-n_comments))) 
@@ -136,7 +201,6 @@ class GenerateData:
         with h5py.File(dataset_path, 'w') as f:
             for k in dataset:
                 f.create_dataset(k, data=dataset[k])
-
         return dataset
 
 if __name__=='__main__':

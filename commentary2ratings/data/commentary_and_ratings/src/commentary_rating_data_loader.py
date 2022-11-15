@@ -11,19 +11,31 @@ class CommentaryAndRatings(Dataset):
 	[player, rating, commentary_len, padded_commentary_embedding]
 	"""
 
-	def __init__(self, processed_dataset_path, mode='train'):
+	def __init__(self, processed_dataset_path, mode='train', normalize=False, min_comments=None):
 		"""
 		Initialization process. Reads in data and runs processing.
 		If the processed data already exists, load that file directly.
 		"""
 		self.mode = mode
+		self.min_comments = min_comments
+		self.normalize = normalize
 		self.dataset_path = os.path.join(os.environ['DATA_DIR'], processed_dataset_path)
 		self.dataset = {}
 		with h5py.File(self.dataset_path, 'r') as f:
 			for k in f:
 				self.dataset[k] = np.array(f[k])
+
+		if self.min_comments:
+			self.dataset = {k : self.dataset[k][self.dataset['commentary_len']>=min_comments] for k in self.dataset}
 	
-		#shuffle the dataset and split in train/val
+		if self.normalize:
+			self.stats_mean, self.stats_stddev = np.mean(self.dataset['player_stats'], axis=0), np.std(self.dataset['player_stats'], axis=0)
+			self.dataset['player_stats'] = (self.dataset['player_stats']-self.stats_mean)/self.stats_stddev
+
+			self.rating_mean, self.rating_stddev = np.mean(self.dataset['rating']), np.std(self.dataset['rating'])
+			self.dataset['rating'] = (self.dataset['rating']-self.rating_mean)/self.rating_stddev
+
+		#shuffle the dataset and split in train/val/test
 		np.random.seed(0)
 		indices = np.random.permutation(self.__len__())
 		for k in self.dataset:
@@ -48,7 +60,8 @@ class CommentaryAndRatings(Dataset):
 
 if __name__=='__main__':
 	from torch.utils.data import DataLoader
-	data = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='val')
+
+	data = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='val', norm_ratings=True, min_comments=4)
 
 	loader = DataLoader(data, batch_size=64, shuffle=True)
 	for batch in loader:
