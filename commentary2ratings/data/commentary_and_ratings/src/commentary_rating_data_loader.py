@@ -60,6 +60,7 @@ class CommentaryAndRatings(Dataset):
 
 if __name__=='__main__':
 	from torch.utils.data import DataLoader
+
 	data = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='val', norm_ratings=True, min_comments=4)
 
 	loader = DataLoader(data, batch_size=64, shuffle=True)
