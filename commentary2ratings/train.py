@@ -46,7 +46,7 @@ class Trainer:
                 total_loss += float(losses.detach())/len(loader)
 
             val_loss = None
-            if epoch%10==0:
+            if epoch%5==0:
                 with torch.no_grad():
                     self.model.eval()
                     val_loss = 0
@@ -79,7 +79,7 @@ class Trainer:
 
 if __name__=='__main__':
     import argparse
-    from commentary2ratings.models import TestC2R, SimpleC2R, ProjC2R, SeqC2R
+    from commentary2ratings.models import *
     from commentary2ratings.data.commentary_and_ratings.src.commentary_rating_data_loader import CommentaryAndRatings
 
     parser = argparse.ArgumentParser()
@@ -91,7 +91,7 @@ if __name__=='__main__':
     # Example run command: python commentary2ratings\train.py --exp_name=SimpleC2R_64x3_relu_run1 --normalize=True
     Trainer(
                 args,
-                model_class = TestC2R, 
-                train_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='train', normalize=args.normalize, min_comments=args.min_comments),
-                val_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='val', normalize=args.normalize, min_comments=args.min_comments)
+                model_class = SeqC2R, 
+                train_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_xlnet.h5', mode='train', normalize=args.normalize, min_comments=args.min_comments),
+                val_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_xlnet.h5', mode='val', normalize=args.normalize, min_comments=args.min_comments)
             ).train(n_epoch=501)

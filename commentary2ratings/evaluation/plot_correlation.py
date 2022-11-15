@@ -30,8 +30,9 @@ class PlotCorrelation:
     def test_loss_over_models(self):
         min_loss_epoch = 0
         min_loss = np.inf
-        for epoch in range(0, 51, 1):
-            self.model.load_weights(epoch, self.model_weights_path)
+        for epoch in range(0, 66):
+            if not self.model.load_weights(epoch, self.model_weights_path):
+                continue
             loss = self.test_loss(self.model)
             print("==> Test error for epoch{}: {}".format(epoch, loss))
 
@@ -47,7 +48,8 @@ class PlotCorrelation:
         for batch in DataLoader(self.data, batch_size=64):
             with torch.no_grad():
                 self.model.eval()
-                pred_ratings.append(self.model(batch).squeeze().detach().cpu().numpy())
+                output = self.model(batch).squeeze().detach().cpu().numpy()
+                pred_ratings.append(output[:])
                 true_ratings.append(batch['rating'].detach().cpu().numpy())
         
         pred_ratings = np.concatenate(pred_ratings)
@@ -63,12 +65,10 @@ class PlotCorrelation:
         plt.ylabel('predicted ratings')
         plt.plot((4,9), (4,9), 'r--')
         plt.show()
-            
-    
 
 if __name__=='__main__':
     eval = PlotCorrelation(
-                    data=CommentaryAndRatings('processed_data_bert.h5', mode='val', normalize=True, min_comments=1),
-                    model_class=TestC2R,
-                    model_weights_path=os.path.join(os.environ['EXP_DIR'], 'rating_predictor/TestC2R/norm_min4_512_256_128_1/weights')
+                    data=CommentaryAndRatings('processed_data_xlnet.h5', mode='test', normalize=False, min_comments=1),
+                    model_class=SeqC2R,
+                    model_weights_path=os.path.join(os.environ['EXP_DIR'], 'rating_predictor/SeqC2R/SeqC2R_l2/weights')
                 )

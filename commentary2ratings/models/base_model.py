@@ -44,4 +44,9 @@ class BaseModel(nn.Module):
     
     def load_weights(self, epoch, path):
         path = os.path.join(path, "weights_ep{}.pth".format(epoch))
-        self.load_state_dict(torch.load(path))
+        if os.path.exists(path):
+            self.load_state_dict(torch.load(path))
+            return True
+        else:
+            print("File not found: {}".format(path))
+            return False
