@@ -19,13 +19,20 @@ class PlotCorrelation:
     
     def test_loss(self, model):
         total_loss = 0
+        SSR = 0
+        SST = 0
         loader = DataLoader(self.data, batch_size=64)
         for batch in loader:
             with torch.no_grad():
                 self.model.eval()
-                total_loss += model.loss(model(batch), batch).detach()/len(loader)
+                output = model(batch)
+                mu = output[:,0]
+                total_loss += model.loss(output, batch).detach()/len(loader)
 
-        return total_loss
+                SSR += torch.sum(torch.square(mu-batch['rating']))
+                SST += torch.sum(torch.square(batch['rating']))
+
+        return total_loss, 1-(SSR/SST)
 
     def test_loss_over_models(self):
         min_loss_epoch = 0
@@ -33,8 +40,8 @@ class PlotCorrelation:
         for epoch in range(0, 66):
             if not self.model.load_weights(epoch, self.model_weights_path):
                 continue
-            loss = self.test_loss(self.model)
-            print("==> Test error for epoch{}: {}".format(epoch, loss))
+            loss, r_squared = self.test_loss(self.model)
+            print("==> epoch{}\nTest error:{}\nR-squared:{}".format(epoch, loss, r_squared))
 
             if min_loss > loss:
                 min_loss = loss
