@@ -84,7 +84,7 @@ if __name__=='__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp_name", type=str, help="unique name of the current run(include details of the architecture. eg. SimpleC2R_64x3_relu_run1)")
-    parser.add_argument("--normalize", default=False, type=bool, help="whether to normalize training data or not")
+    parser.add_argument("--normalize", default=False, type=int, help="whether to normalize training data or not")
     parser.add_argument("--min_comments", default=None, type=int, help="parameter to filter data by minimum commentaries")
     args = parser.parse_args()
 

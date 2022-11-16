@@ -30,7 +30,7 @@ class SeqC2R(BaseModel):
                         nn.Linear(self.hidden_size, self.hidden_size),
                         nn.BatchNorm1d(self.hidden_size),
                         nn.LeakyReLU(0.2),
-                        nn.Linear(self.hidden_size, 2)
+                        nn.Linear(self.hidden_size, 2) # mu and log_sigma
                     )
 
     def forward(self, inputs):

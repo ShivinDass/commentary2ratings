@@ -49,7 +49,7 @@ class PlotCorrelation:
             with torch.no_grad():
                 self.model.eval()
                 output = self.model(batch).squeeze().detach().cpu().numpy()
-                pred_ratings.append(output[:])
+                pred_ratings.append(output[:, 0])
                 true_ratings.append(batch['rating'].detach().cpu().numpy())
         
         pred_ratings = np.concatenate(pred_ratings)
@@ -67,8 +67,17 @@ class PlotCorrelation:
         plt.show()
 
 if __name__=='__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--weights_dir", type=str, help="path to weights directory")
+    parser.add_argument("--normalize", default=False, type=int, help="whether to normalize training data or not")
+    parser.add_argument("--min_comments", default=None, type=int, help="parameter to filter data by minimum commentaries")
+    args = parser.parse_args()
+    # Example command: python commnetary2ratings/evaluation/plot_correlation.py --weights_dir=experiments/rating_predictor/SeqC2R/SeqC2R_nll/weights --normalize=0
+    
     eval = PlotCorrelation(
-                    data=CommentaryAndRatings('processed_data_xlnet.h5', mode='test', normalize=False, min_comments=1),
+                    data=CommentaryAndRatings('processed_data_xlnet.h5', mode='test', normalize=args.normalize, min_comments=args.min_comments),
                     model_class=SeqC2R,
-                    model_weights_path=os.path.join(os.environ['EXP_DIR'], 'rating_predictor/SeqC2R/SeqC2R_l2/weights')
+                    model_weights_path=args.weights_dir
                 )
