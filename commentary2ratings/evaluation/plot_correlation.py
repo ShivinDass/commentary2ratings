@@ -81,10 +81,10 @@ if __name__=='__main__':
     parser.add_argument("--normalize", default=False, type=int, help="whether to normalize training data or not")
     parser.add_argument("--min_comments", default=None, type=int, help="parameter to filter data by minimum commentaries")
     args = parser.parse_args()
-    # Example command: python commnetary2ratings/evaluation/plot_correlation.py --weights_dir=experiments/rating_predictor/SeqC2R/SeqC2R_nll/weights --normalize=0
+    # Example command: python commentary2ratings/evaluation/plot_correlation.py --weights_dir=experiments/rating_predictor/SeqC2R/SeqC2R_nll/weights --normalize=0
     
     eval = PlotCorrelation(
                     data=CommentaryAndRatings('processed_data_xlnet.h5', mode='test', normalize=args.normalize, min_comments=args.min_comments),
-                    model_class=SeqC2R,
+                    model_class=ProjC2R,
                     model_weights_path=args.weights_dir
                 )
