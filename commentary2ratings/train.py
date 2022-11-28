@@ -95,6 +95,6 @@ if __name__=='__main__':
     Trainer(
                 args,
                 model_class = SeqC2R, 
-                train_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_xlnet.h5', mode='train', normalize=args.normalize, min_comments=args.min_comments),
-                val_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_xlnet.h5', mode='val', normalize=args.normalize, min_comments=args.min_comments)
-            ).train(n_epoch=501)
+                train_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='train', normalize=args.normalize, min_comments=args.min_comments),
+                val_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='val', normalize=args.normalize, min_comments=args.min_comments)
+            ).train(n_epoch=51)

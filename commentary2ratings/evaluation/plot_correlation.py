@@ -13,8 +13,9 @@ class PlotCorrelation:
         self.model = model_class()
         self.model_weights_path = model_weights_path
 
-        min_loss_epoch = self.test_loss_over_models()
+        min_loss_epoch, min_loss = self.test_loss_over_models()
         print("Min loss epoch: {}".format(min_loss_epoch))
+        print("Min loss: {}".format(min_loss))
         self.plot_correlation(min_loss_epoch)
     
     def test_loss(self, model):
@@ -46,7 +47,7 @@ class PlotCorrelation:
             if min_loss > loss:
                 min_loss = loss
                 min_loss_epoch = epoch
-        return min_loss_epoch
+        return min_loss_epoch, min_loss
 
     def plot_correlation(self, epoch):
         self.model.load_weights(epoch, self.model_weights_path)

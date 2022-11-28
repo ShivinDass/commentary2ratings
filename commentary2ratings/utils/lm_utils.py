@@ -60,3 +60,26 @@ def tsne_visualize(embeddings, ground_truth, perplexity=100, title=None):
 		if not os.path.exists(exp_dir):
 			os.makedirs(exp_dir)
 		plt.savefig(os.path.join(exp_dir, title))
+
+def process_commentary_list(commentaries):
+	def obtain_labels(data):
+		labels = []
+		for item in data:
+			labels.append('None')
+			low = item.lower()
+
+			for k in EVENT_KEYS:
+				if k in low:
+					labels[-1] = EVENT_KEYS[k]
+					break
+		return np.asarray(labels)
+
+	#df = pd.read_csv(os.path.join(os.environ['DATA_DIR'], 'player_comments_ratings.csv'), converters={'comments': literal_eval})
+	#TRAIN_DATA = [x for l in df["comments"].values for x in l]#[:10]
+	LABELS = obtain_labels(commentaries)
+	
+	# Delete labels with value None
+	ind = np.where(LABELS == 'None')
+	LABELS = np.delete(LABELS, ind)
+	TRAIN_DATA = np.delete(commentaries, ind)
+	return TRAIN_DATA, LABELS

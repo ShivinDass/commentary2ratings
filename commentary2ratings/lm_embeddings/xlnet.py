@@ -28,12 +28,13 @@ class XLNetHelper():
 		'''
 		text_embeddings = []
 		for text in data:
+	
 			tokenization = self.tokenizer.tokenize(text)
 			indexes = self.tokenizer._convert_token_to_id(tokenization)
 			segments = [1] * len(tokenization)
-			tokenization_tensor = torch.tensor([indexes])
-			segments_tensor = torch.tensor([segments])
-			
+			tokenization_tensor = torch.tensor([indexes]).long()
+			segments_tensor = torch.tensor([segments]).long()
+			#print(tokenization_tensor.shape, segments_tensor.shape)
 			self.model.eval()
 			with torch.no_grad():
 				outputs = self.model(tokenization_tensor, segments_tensor)
