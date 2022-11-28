@@ -47,6 +47,7 @@ def process_for_game(commentary):
             
 
 def calculate():
+    global commentary
     data = process_for_game(commentary)
     model = SeqC2R()
     model.load_weights(15, 'experiments/rating_predictor/SeqC2R/def_norm_nll_51_nostats/weights')
@@ -54,7 +55,7 @@ def calculate():
         model.eval()
         output = model(data).squeeze().detach().cpu().numpy()
     
-    
+    commentary = []
     print("Your Rating is: " + str(round(output[0],2)))
     print()
     print('--------------------------------------------------')
@@ -66,7 +67,7 @@ def Q3(player):
 
   global commentary
   global choices
-  directions = ["1","2"]
+  options = ["1","2"]
   print("It all boils down to this. The final minute. Scores are level. Your last opportunity")
   print("No teammates around and defenders closing in. You have to take the shot and the only thing in your way is the goalkeeper.")
   print("You see two possible options:")
@@ -76,7 +77,7 @@ def Q3(player):
   print()
   #print("Type '1' or '2'")
   userInput = ''
-  while userInput not in directions:
+  while userInput not in options:
     print("Options: 1/2")
     
     userInput = input()
@@ -98,7 +99,7 @@ def Q3(player):
         commentary.append(play)
 
         print("YOU'VE DONE IT!! AGAINST ALL ODDS YOU SCORED THE WINNING GOAL")
-        print("Congratualtions! This is surely the first of mant such performances")
+        print("Congratualtions! This is surely the first of many such performances")
 
     elif userInput == "2":
       choice = random.randint(0,1)
@@ -136,13 +137,13 @@ def Q3(player):
 def Q2(player):
   global commentary
   global choices
-  directions = ["1","2"]
+  options = ["1","2"]
   print("Your opposition's best striker has made his way to the edges of your box with you following close by")
   print("You can probably stop what could be a goal if you try to run and tackle him but you risk a foul.")
   print("What do you do? 1. Tackle the player, 2. Play it safe and try to kick the ball away")
   print()
   userInput = ""
-  while userInput not in directions:
+  while userInput not in options:
     print("Options: 1/2")
     
     userInput = input()
@@ -164,7 +165,7 @@ def Q2(player):
       if choice == 1:
         play =  'Fouled by ' +player + ' - Chelsea'
         commentary.append(play)
-        commentary.append(player + '  - Stoke City -  won a free kick in defence.')
+        commentary.append(player + '  - Chelsea -  won a free kick in defence.')
 
         print("You get warned for fouling the opposition.")
         print("However, you are content with yourself knowing you probably just averted a goal")
@@ -198,7 +199,7 @@ def Q2(player):
 def introScene(player):
   global commentary
   global choices
-  directions = ["1","2"]
+  options = ["1","2"]
   print("It is the 10th Minute of the match, you see two opportunities to attack:")
   print("1. You see your teammate standing unmarked on the left wing with the chance of a scoring opportunity")
   print("2. You see an opportunity to get the glory yourself but it's not as straightforward as option 1")
@@ -206,7 +207,7 @@ def introScene(player):
   print()
   #print("Type '1' or '2'")
   userInput = ''
-  while userInput not in directions:
+  while userInput not in options:
     print("Options: 1/2")
     print()
     userInput = input()
