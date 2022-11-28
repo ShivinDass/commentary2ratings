@@ -1,4 +1,3 @@
-import os
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,6 +21,9 @@ class PlotCorrelation:
         SSR = 0
         SST = 0
         loader = DataLoader(self.data, batch_size=64)
+
+        all_data = []
+        pred_data = []
         for batch in loader:
             with torch.no_grad():
                 self.model.eval()
@@ -29,10 +31,16 @@ class PlotCorrelation:
                 mu = output[:,0]
                 total_loss += model.loss(output, batch).detach()/len(loader)
 
-                SSR += torch.sum(torch.square(mu-batch['rating']))
-                SST += torch.sum(torch.square(batch['rating']))
+                pred_data.append(mu.detach().cpu().numpy())
+                all_data.append(batch['rating'].detach().cpu().numpy())
 
-        return total_loss, 1-(SSR/SST)
+        pred_data = np.concatenate(pred_data)
+        all_data = np.concatenate(all_data)
+        
+        SSR = np.sum(np.square(all_data-pred_data))
+        SST = np.sum(np.square(all_data-np.mean(all_data)))
+
+        return total_loss, 1-(SSR/SST), np.mean(np.square(all_data-pred_data))
 
     def test_loss_over_models(self):
         min_loss_epoch = 0
@@ -40,7 +48,7 @@ class PlotCorrelation:
         for epoch in range(0, 66):
             if not self.model.load_weights(epoch, self.model_weights_path):
                 continue
-            loss, r_squared = self.test_loss(self.model)
+            loss, r_squared, mse = self.test_loss(self.model)
             print("==> epoch{}\nTest error:{}\nR-squared:{}".format(epoch, loss, r_squared))
 
             if min_loss > loss:
@@ -64,13 +72,19 @@ class PlotCorrelation:
 
         if self.data.normalize:
             pred_ratings = pred_ratings*self.data.rating_mean + self.data.rating_stddev
-            true_ratings = true_ratings*self.data.rating_stddev + self.data.rating_stddev
+            true_ratings = true_ratings*self.data.rating_mean + self.data.rating_stddev
 
+        loss, r_squared, mse = self.test_loss(self.model)
+        # import pickle
+        # with open('ours.pkl', 'wb') as f:
+        #     pickle.dump([pred_ratings, true_ratings], f)
         plt.figure()
-        plt.scatter(true_ratings, pred_ratings)
+        plt.scatter(true_ratings, pred_ratings, c=((0.5, 0.5, 1)), alpha=0.5)
         plt.xlabel('true ratings')
         plt.ylabel('predicted ratings')
         plt.plot((4,9), (4,9), 'r--')
+        plt.text(4, 9, 'MSE: {:.3f}'.format(mse), fontsize=10)
+        plt.tight_layout()
         plt.show()
 
 if __name__=='__main__':
@@ -85,6 +99,6 @@ if __name__=='__main__':
     
     eval = PlotCorrelation(
                     data=CommentaryAndRatings('processed_data_xlnet.h5', mode='test', normalize=args.normalize, min_comments=args.min_comments),
-                    model_class=ProjC2R,
+                    model_class=SeqC2R,
                     model_weights_path=args.weights_dir
                 )

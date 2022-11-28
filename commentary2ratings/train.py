@@ -88,10 +88,10 @@ if __name__=='__main__':
     parser.add_argument("--min_comments", default=None, type=int, help="parameter to filter data by minimum commentaries")
     args = parser.parse_args()
 
-    # Example run command: python commentary2ratings\train.py --exp_name=SimpleC2R_64x3_relu_run1 --normalize=True
+    # Example run command: python commentary2ratings\train.py --exp_name=SimpleC2R_64x3_relu_run1 --normalize=0
     Trainer(
                 args,
-                model_class = ProjC2R, 
-                train_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_xlnet.h5', mode='train', normalize=args.normalize, min_comments=args.min_comments),
-                val_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_xlnet.h5', mode='val', normalize=args.normalize, min_comments=args.min_comments)
+                model_class = SeqC2R, 
+                train_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='train', normalize=args.normalize, min_comments=args.min_comments),
+                val_dataset = CommentaryAndRatings(processed_dataset_path='processed_data_bert.h5', mode='val', normalize=args.normalize, min_comments=args.min_comments)
             ).train(n_epoch=101)

@@ -22,7 +22,7 @@ class ProjC2R(BaseModel):
                     )
 
         self.regression_layer = nn.Sequential(
-                        nn.Linear(self.hidden_size+46, self.hidden_size),
+                        nn.Linear(self.hidden_size, self.hidden_size),
                         nn.BatchNorm1d(self.hidden_size),
                         nn.LeakyReLU(0.2),
                         nn.Linear(self.hidden_size, self.hidden_size),
@@ -37,7 +37,7 @@ class ProjC2R(BaseModel):
         projections = self.encoder_layer(inputs['padded_commentary_embedding'].view(batch*seq, -1)).reshape(batch, seq, -1)
         mask = torch.norm(inputs['padded_commentary_embedding'], dim=-1) > 0
         projections = torch.sum(projections*(mask[..., None]), dim=1)/(inputs['commentary_len'][:, None])
-        projections = torch.cat((projections, inputs['player_stats']), dim=-1)
+        # projections = torch.cat((projections, inputs['player_stats']), dim=-1)
         return self.regression_layer(projections)
         
         

@@ -24,7 +24,7 @@ class SeqC2R(BaseModel):
         self.lstm = nn.LSTM(self.hidden_size, self.hidden_size, batch_first = True)
         
         self.final_mlp = nn.Sequential(
-                        nn.Linear(self.hidden_size+46, self.hidden_size),
+                        nn.Linear(self.hidden_size, self.hidden_size),
                         nn.BatchNorm1d(self.hidden_size),
                         nn.LeakyReLU(0.2),
                         nn.Linear(self.hidden_size, self.hidden_size),
@@ -43,7 +43,7 @@ class SeqC2R(BaseModel):
         lstm_out, _ = self.lstm(packed)
         unpacked = pad_packed_sequence(lstm_out, batch_first=True)[0][torch.arange(batch), inp_sizes-1]
 
-        return self.final_mlp(torch.cat((unpacked, inputs['player_stats']), dim=-1))
+        return self.final_mlp(unpacked) #self.final_mlp(torch.cat((unpacked, inputs['player_stats']), dim=-1))
     
     def loss(self, outputs, inputs):
         # return nn.MSELoss()(outputs, inputs['rating'])

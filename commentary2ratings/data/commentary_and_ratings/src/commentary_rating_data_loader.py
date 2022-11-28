@@ -29,10 +29,10 @@ class CommentaryAndRatings(Dataset):
 			self.dataset = {k : self.dataset[k][self.dataset['commentary_len']>=min_comments] for k in self.dataset}
 	
 		if self.normalize:
-			self.stats_mean, self.stats_stddev = np.mean(self.dataset['player_stats'], axis=0), np.std(self.dataset['player_stats'], axis=0)
+			self.stats_mean, self.stats_stddev = np.mean(self.dataset['player_stats'], axis=0), np.std(self.dataset['player_stats'], axis=0)+1e-5
 			self.dataset['player_stats'] = (self.dataset['player_stats']-self.stats_mean)/self.stats_stddev
 
-			self.rating_mean, self.rating_stddev = np.mean(self.dataset['rating']), np.std(self.dataset['rating'])
+			self.rating_mean, self.rating_stddev = np.mean(self.dataset['rating']), np.std(self.dataset['rating'])+1e-5
 			self.dataset['rating'] = (self.dataset['rating']-self.rating_mean)/self.rating_stddev
 
 		#shuffle the dataset and split in train/val/test
