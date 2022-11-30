@@ -1,5 +1,6 @@
 import random
 import torch
+import numpy as np
 import torch.nn.functional as F
 from datetime import datetime
 from tqdm import tqdm
@@ -7,6 +8,7 @@ from commentary2ratings.models import SeqC2R
 
 from commentary2ratings.lm_embeddings.xlnet import XLNetHelper
 commentary = []
+risks = 0
 choices = {0: 0, 1: 0}
 
 
@@ -48,6 +50,7 @@ def process_for_game(commentary):
 
 def calculate():
     global commentary
+    global risks
     data = process_for_game(commentary)
     model = SeqC2R()
     model.load_weights(15, 'experiments/rating_predictor/SeqC2R/def_norm_nll_51_nostats/weights')
@@ -56,7 +59,8 @@ def calculate():
         output = model(data).squeeze().detach().cpu().numpy()
     
     commentary = []
-    print("Your Rating is: " + str(round(output[0],2)))
+    print("Your Rating is: " + str(min(round(output[0] + (risks * 0.1),2),10)))
+    risks = 0
     print()
     print('--------------------------------------------------')
     print()
@@ -67,6 +71,7 @@ def Q3(player):
 
   global commentary
   global choices
+  global risks
   options = ["1","2"]
   print("It all boils down to this. The final minute. Scores are level. Your last opportunity")
   print("No teammates around and defenders closing in. You have to take the shot and the only thing in your way is the goalkeeper.")
@@ -85,7 +90,7 @@ def Q3(player):
     if userInput == "1":
 
       choice = random.randint(0,1)
-      choices[choice] += 1
+      np.random.choice(2,p=[0.6,0.4])
       if choice == 0:
         
         play = 'Attempt missed. ' + player + ' (Chelsea) right footed shot from the centre of the box misses to the right. Assisted by Eden Hazard with a cross.'
@@ -97,8 +102,9 @@ def Q3(player):
       if choice == 1:
         play = "Goal!  Manchester United 1, Chelsea 2. "+player+"  - Chelsea -  shot with right foot from the centre of the box to the right corner. Assist -  Eden Hazard with a through ball following a fast break."
         commentary.append(play)
+        risks += 1
 
-        print("YOU'VE DONE IT!! AGAINST ALL ODDS YOU SCORED THE WINNING GOAL")
+        print(player.split(' ')[0].upper() +"!! YOU'VE DONE IT!! AGAINST ALL ODDS YOU SCORED THE WINNING GOAL")
         print("Congratualtions! This is surely the first of many such performances")
 
     elif userInput == "2":
@@ -117,8 +123,8 @@ def Q3(player):
         play = 'Goal!  Manchester United 1, Chelsea 2. ' + player + '  - Chelsea -  shot with right foot from the centre of the box to the left corner. Assist -  Eden Hazard.'
         commentary.append(play)
 
-        print("YOU'VE DONE IT!! AGAINST ALL ODDS YOU SCORED THE WINNING GOAL")
-        print("Congratualtions! This is surely the first of mant such performances")
+        print(player.split(' ')[0].upper() + " YOU'VE DONE IT!! AGAINST ALL ODDS YOU SCORED THE WINNING GOAL")
+        print("Congratualtions! This is surely the first of many such performances")
 
 
 
@@ -179,7 +185,7 @@ def Q2(player):
         play =  player + '  - Chelsea -  receive yellow card for a foul.'
         commentary.append(play)
 
-        print("A good attempt at stealing the ball, unfortunately you get the opposition oplayer's foot adn the refree did'nt like that")
+        print("A good attempt at stealing the ball, unfortunately you get the opposition oplayer's foot and the refree did'nt like that")
         print("You get a yellow card for a foul just outside the box.")
 
       if choice == 1:
@@ -257,16 +263,16 @@ def introScene(player):
   Q2(player)
 
 if __name__ == "__main__":
-  while True:
-    print("Welcome to the FIFA 2022 WC!")
-    print("Playing in your debut football match as a young talent, you are excited to make a mark on the football world")
-    print("You will now go through a few scenarios to get your player rating for the match")
-    print("Let's start with your first name: ")
-    name = input()
+  #while True:
+  print("Welcome to the FIFA 2022 WC!")
+  print("Playing in your debut football match as a young talent, you are excited to make a mark on the football world")
+  print("You will now go through a few scenarios to get your player rating for the match")
+  print("Let's start with your first name: ")
+  name = input()
 
-    print()
-    print("Good luck, " +name+ ".")
-    print()
-    print('--------------------------------------------------')
-    print()
-    introScene(name)
+  print()
+  print("Good luck, " +name+ ".")
+  print()
+  print('--------------------------------------------------')
+  print()
+  introScene(name)
